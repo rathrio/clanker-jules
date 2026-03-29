@@ -1,3 +1,6 @@
+require 'tempfile'
+require 'shellwords'
+
 module Tool
   JSON_TYPES = {
     String => 'string',
@@ -160,7 +163,36 @@ class EditTool
       return "Error: Search string found #{count} times. Provide more context to make it unique."
     end
 
-    File.write(path, content.sub(search, replace))
-    "Successfully edited #{path}"
+    new_content = content.sub(search, replace)
+
+    old_file = Tempfile.new('old')
+    new_file = Tempfile.new('new')
+    old_file.write(content)
+    new_file.write(new_content)
+    old_file.close
+    new_file.close
+
+    puts "\n"
+    diff = `diff -u -L #{path.shellescape} -L #{path.shellescape} #{old_file.path.shellescape} #{new_file.path.shellescape}`
+    diff.each_line do |line|
+      if line.start_with?('+++') || line.start_with?('---')
+        print "\e[1m#{line}\e[0m"
+      elsif line.start_with?('+')
+        print "\e[32m#{line}\e[0m"
+      elsif line.start_with?('-')
+        print "\e[31m#{line}\e[0m"
+      elsif line.start_with?('@@')
+        print "\e[36m#{line}\e[0m"
+      else
+        print line
+      end
+    end
+    puts "\n"
+
+    old_file.unlink
+    new_file.unlink
+
+    File.write(path, new_content)
+    "Edited #{path}"
   end
 end
