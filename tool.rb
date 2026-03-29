@@ -10,7 +10,6 @@ module Tool
     Float => 'number'
   }.freeze
 
-  # rubocop:disable Metrics/AbcSize
   def self.included(klass)
     klass.define_singleton_method(:param) do |param|
       @params ||= []

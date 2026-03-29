@@ -12,15 +12,9 @@ This repository contains the source code for Jules, a terminal-based AI assistan
 
 ## Development Guidelines
 - Before implementing a new tool, always review the implementation of existing tools (e.g., `tools/edit_tool.rb`) to ensure consistency.
-- No external gem dependencies — all API communication uses `net/http` from the standard library.
-- When adding a new provider, include `BaseProvider` and implement `generate_content`, `parse_response`, `model`, and `tool_format`.
-
-## Key Environment Variables
-- `JULES_PROVIDER`: Select the provider (`openrouter` or omit for Gemini).
-- `GOOGLE_GENERATIVE_AI_API_KEY`: Required for the Gemini provider.
-- `OPENROUTER_API_KEY`: Required for the OpenRouter provider.
+- No external gem dependencies —  all API communication uses `net/http` from the standard library.
 
 ## Linting
 - This project uses RuboCop for linting.
-- Run `bundle exec rubocop -A` to auto-correct offenses.
+- Run `bundle exec rubocop -A` to auto-correct offenses. Always run it after major changes.
 - The configuration is in `.rubocop.yml`. Method length and class length rules are disabled.

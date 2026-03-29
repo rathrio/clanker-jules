@@ -26,9 +26,7 @@ class ReadTool
     start_line = params['start_line']
     end_line = params['end_line']
 
-    unless start_line || end_line
-      return File.read(path)
-    end
+    return File.read(path) unless start_line || end_line
 
     lines = File.readlines(path)
     start_index = start_line ? [start_line.to_i - 1, 0].max : 0

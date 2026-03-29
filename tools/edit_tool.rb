@@ -36,7 +36,6 @@ class EditTool
     "Edited #{path}"
   end
 
-  # rubocop:disable Metrics/AbcSize
   def display_diff(path, old_content, new_content)
     old_file = Tempfile.new('old')
     new_file = Tempfile.new('new')
