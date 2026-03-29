@@ -1,10 +1,9 @@
 require 'json'
-require 'net/http'
-require 'uri'
 require 'readline'
 
 require_relative 'message'
 require_relative 'tool'
+require_relative 'gemini_client'
 
 module UI
   PINK   = "\e[38;2;255;121;198m"
@@ -27,13 +26,7 @@ module UI
   end
 end
 
-# GEMINI_MODEL = 'gemini-flash-latest'
-GEMINI_MODEL = 'gemini-pro-latest'
-API_KEY = ENV.fetch('GOOGLE_GENERATIVE_AI_API_KEY')
-URL = URI("https://generativelanguage.googleapis.com/v1beta/models/#{GEMINI_MODEL}:generateContent?key=#{API_KEY}")
-HTTP = Net::HTTP.new(URL.host, URL.port)
-HTTP.use_ssl = true
-
+client = GeminiClient.new
 messages = []
 has_unsent_tool_results = false
 
@@ -91,11 +84,7 @@ loop do
       tools: [{ function_declarations: Tool.all_gemini_declarations }]
     }
 
-    request = Net::HTTP::Post.new(URL)
     has_unsent_tool_results = false
-
-    request["Content-Type"] = "application/json"
-    request.body = body.to_json
 
     spinner_thread = Thread.new do
       spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
@@ -108,13 +97,11 @@ loop do
     end
 
     begin
-      response = HTTP.request(request)
+      parsed = client.generate_content(body)
     ensure
       spinner_thread.kill
       print "\r\e[K"
     end
-
-    parsed = JSON.parse(response.body)
 
     candidate = parsed['candidates']&.first
     if candidate.nil?
