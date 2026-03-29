@@ -65,7 +65,7 @@ module Tool
     params.to_h do |param|
       [
         param.fetch(:name),
-        { type: JSON_TYPES.fetch(param.fetch(:type)), description: param['description'] }
+        { type: JSON_TYPES.fetch(param.fetch(:type)), description: param.fetch(:description) }
       ]
     end
   end

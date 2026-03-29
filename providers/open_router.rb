@@ -1,18 +1,20 @@
 # frozen_string_literal: true
 
-require_relative 'base_provider'
+require_relative 'provider'
 require 'net/http'
 require 'uri'
 require 'json'
 
 class OpenRouterProvider
   include Provider
-  # MODEL = 'openai/gpt-4o'
-  MODEL = 'qwen/qwen3-coder'
-  # MODEL = 'anthropic/claude-3-haiku'
 
-  def initialize
+  # DEFAULT_MODEL = 'openai/gpt-4o'
+  DEFAULT_MODEL = 'openai/gpt-5.3-codex'
+  # DEFAULT_MODEL = 'anthropic/claude-3-haiku'
+
+  def initialize(model: nil)
     api_key = ENV.fetch('OPENROUTER_API_KEY')
+    @model = model || DEFAULT_MODEL
     @uri = URI.parse('https://openrouter.ai/api/v1/chat/completions')
     @headers = {
       'Content-Type' => 'application/json',
@@ -20,7 +22,7 @@ class OpenRouterProvider
     }
   end
 
-  def model = MODEL
+  attr_reader :model
 
   def tool_format
     :openai
@@ -35,7 +37,7 @@ class OpenRouterProvider
 
     request = Net::HTTP::Post.new(@uri.request_uri, @headers)
     request.body = {
-      model: MODEL,
+      model: @model,
       max_tokens: 4096,
       messages: messages,
       tools: tools

@@ -4,6 +4,7 @@
 require 'json'
 require 'readline'
 require 'fileutils'
+require 'optparse'
 
 require_relative 'message'
 require_relative 'tool'
@@ -12,12 +13,36 @@ require_relative 'providers/gemini'
 require_relative 'providers/open_router'
 
 # --- Configuration ---
-# Select provider based on environment variable, default to Gemini
-PROVIDER = case ENV['JULES_PROVIDER']&.downcase
+options = {
+  provider: ENV.fetch('JULES_PROVIDER', 'gemini').downcase,
+  model: ENV.fetch('JULES_MODEL', nil)
+}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: #{File.basename($PROGRAM_NAME)} [options]"
+
+  opts.on('-p', '--provider PROVIDER', 'Provider: gemini or openrouter') do |provider|
+    options[:provider] = provider.downcase
+  end
+
+  opts.on('-m', '--model MODEL', 'Model name for the selected provider') do |model|
+    options[:model] = model
+  end
+
+  opts.on('-h', '--help', 'Show this help') do
+    puts opts
+    exit
+  end
+end.parse!
+
+PROVIDER = case options[:provider]
            when 'openrouter'
-             OpenRouterProvider.new
+             OpenRouterProvider.new(model: options[:model])
+           when 'gemini'
+             GeminiProvider.new(model: options[:model])
            else
-             GeminiProvider.new
+             warn "Unknown provider '#{options[:provider]}'. Use 'gemini' or 'openrouter'."
+             exit 1
            end
 
 # Ensure directories exist
@@ -84,6 +109,7 @@ def handle_slash_commands(input, messages, session_started_at)
     loop do
       line = Readline.readline(UI.multi_prompt, false)
       break if line.nil?
+
       lines << line
     end
     input = lines.join("\n").strip
@@ -177,7 +203,6 @@ loop do
     puts "#{UI::COMMENT}Raw Response: #{response.inspect}#{UI::RESET}"
     has_unsent_tool_results = false
   end
-
 rescue Interrupt
   puts "\n^C"
   has_unsent_tool_results = false

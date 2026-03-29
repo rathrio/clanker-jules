@@ -1,29 +1,32 @@
 # frozen_string_literal: true
 
-require_relative 'base_provider'
+require_relative 'provider'
 require 'net/http'
 require 'uri'
 require 'json'
 
 class GeminiProvider
   include Provider
-  # MODEL = 'gemini-flash-latest'
-  # MODEL = 'gemini-pro-latest'
-  MODEL = 'gemini-2.5-pro'
 
-  def initialize
+  # DEFAULT_MODEL = 'gemini-flash-latest'
+  # DEFAULT_MODEL = 'gemini-pro-latest'
+  DEFAULT_MODEL = 'gemini-2.5-pro'
+
+  def initialize(model: nil)
     @api_key = ENV.fetch('GOOGLE_GENERATIVE_AI_API_KEY')
-    @uri = URI("https://generativelanguage.googleapis.com/v1beta/models/#{MODEL}:generateContent?key=#{@api_key}")
+    @model = model || DEFAULT_MODEL
   end
 
-  def model = MODEL
+  attr_reader :model
 
   def tool_format
     :gemini
   end
 
   def generate_content(history, tools, system_prompt: nil)
-    http = Net::HTTP.new(@uri.host, @uri.port)
+    uri = URI("https://generativelanguage.googleapis.com/v1beta/models/#{@model}:generateContent?key=#{@api_key}")
+
+    http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
 
     body = {
@@ -31,11 +34,9 @@ class GeminiProvider
       tools: [{ functionDeclarations: tools }]
     }
 
-    if system_prompt
-      body[:system_instruction] = { parts: [{ text: system_prompt }] }
-    end
+    body[:system_instruction] = { parts: [{ text: system_prompt }] } if system_prompt
 
-    request = Net::HTTP::Post.new(@uri)
+    request = Net::HTTP::Post.new(uri)
     request['Content-Type'] = 'application/json'
     request.body = body.to_json
 
@@ -50,8 +51,8 @@ class GeminiProvider
     parts = candidate.dig('content', 'parts') || []
 
     thinking_parts = parts
-      .select { |p| p.key?('thought') || p.key?('thoughtSignature') }
-      .map { |p| { _raw_gemini: p } }
+                     .select { |p| p.key?('thought') || p.key?('thoughtSignature') }
+                     .map { |p| { _raw_gemini: p } }
 
     function_calls = parts.select { |p| p.key?('functionCall') }
     unless function_calls.empty?
@@ -63,9 +64,7 @@ class GeminiProvider
     end
 
     text_parts = parts.select { |p| p.key?('text') }
-    unless text_parts.empty?
-      return { type: :message, data: text_parts.map { |p| p['text'] }.join, extra_parts: thinking_parts }
-    end
+    return { type: :message, data: text_parts.map { |p| p['text'] }.join, extra_parts: thinking_parts } unless text_parts.empty?
 
     return { type: :message, data: '', extra_parts: thinking_parts } unless thinking_parts.empty?
 
