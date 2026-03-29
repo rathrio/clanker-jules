@@ -9,6 +9,10 @@ class LoadSkillTool
     'Load a skill by name. The skill content will be returned to you.'
   end
 
+  def self.render_execution(args)
+    "Loading skill: #{args['name']}"
+  end
+
   param name: 'name',
         type: String,
         description: 'The name of the skill to load.'
