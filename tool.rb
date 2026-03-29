@@ -31,8 +31,23 @@ module Tool
         description: klass.description,
         parameters: {
           type: 'object',
-          properties: Tool.as_gemini_param_properties(klass.params),
+          properties: Tool.as_json_schema_properties(klass.params),
           required: Tool.infer_required_params(klass.params)
+        }
+      }
+    end
+
+    klass.define_singleton_method(:as_openai_declaration) do
+      {
+        type: 'function',
+        function: {
+          name: klass.tool_name,
+          description: klass.description,
+          parameters: {
+            type: 'object',
+            properties: Tool.as_json_schema_properties(klass.params),
+            required: Tool.infer_required_params(klass.params)
+          }
         }
       }
     end
@@ -46,7 +61,7 @@ module Tool
   end
   # rubocop:enable Metrics/AbcSize
 
-  def self.as_gemini_param_properties(params)
+  def self.as_json_schema_properties(params)
     params.to_h do |param|
       [
         param.fetch(:name),
@@ -65,8 +80,15 @@ module Tool
     @known_tools.values
   end
 
-  def self.all_gemini_declarations
-    all.map(&:as_gemini_declaration)
+  def self.declarations(format:)
+    case format
+    when :gemini
+      all.map(&:as_gemini_declaration)
+    when :openai
+      all.map(&:as_openai_declaration)
+    else
+      raise "Unknown tool format: #{format}"
+    end
   end
 
   def self.find(name)
