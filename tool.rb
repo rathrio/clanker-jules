@@ -111,3 +111,36 @@ class WriteTool
     params.fetch('path')
   end
 end
+
+class EditTool
+  include Tool
+
+  def self.description
+    'Edit a file by replacing an exact search string with a new string. Provide enough context in the search string to ensure a unique match.'
+  end
+
+  param name: 'path', type: String, description: 'The path to the file to edit'
+  param name: 'search', type: String, description: 'The exact string to search for in the file. Must be unique.'
+  param name: 'replace', type: String, description: 'The string to replace the search string with'
+  def call(params)
+    path = params.fetch('path')
+    search = params.fetch('search')
+    replace = params.fetch('replace')
+
+    return "Error: File does not exist." unless File.exist?(path)
+
+    content = File.read(path)
+
+    unless content.include?(search)
+      return "Error: Search string not found in file. Ensure exact whitespace matching."
+    end
+
+    count = content.scan(search).size
+    if count > 1
+      return "Error: Search string found #{count} times. Provide more context to make it unique."
+    end
+
+    File.write(path, content.sub(search, replace))
+    "Successfully edited #{path}"
+  end
+end

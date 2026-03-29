@@ -5,7 +5,8 @@ require 'uri'
 require_relative 'message'
 require_relative 'tool'
 
-GEMINI_MODEL = 'gemini-flash-latest'
+# GEMINI_MODEL = 'gemini-flash-latest'
+GEMINI_MODEL = 'gemini-pro-latest'
 API_KEY = ENV.fetch('GOOGLE_GENERATIVE_AI_API_KEY')
 URL = URI("https://generativelanguage.googleapis.com/v1beta/models/#{GEMINI_MODEL}:generateContent?key=#{API_KEY}")
 HTTP = Net::HTTP.new(URL.host, URL.port)
@@ -62,7 +63,7 @@ loop do
     if (call = part['functionCall'])
       puts "jules: Executing tool: #{call['name']} with args: #{call['args']}"
       result = Tool.call(call['name'], call['args'])
-      messages << Message.new('user', [part.slice('functionCall')])
+      messages << Message.new('model', [part.slice('functionCall')])
       messages << Message.new('user', [{ functionResponse: { name: call['name'], response: { result: } } }])
       has_unsent_tool_results = true
     end
