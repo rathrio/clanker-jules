@@ -21,7 +21,7 @@ module Tool
 
     klass.define_singleton_method(:as_gemini_declaration) do
       {
-        name: klass.to_s.sub(/Tool$/, '').downcase,
+        name: klass.tool_name,
         description: klass.description,
         parameters: {
           type: 'object',
@@ -29,6 +29,10 @@ module Tool
           required: Tool.infer_required_params(klass.params)
         }
       }
+    end
+
+    klass.define_singleton_method(:render_execution) do |args|
+      "Executing #{klass.tool_name} with args: #{args.to_json}"
     end
 
     @known_tools ||= {}
@@ -78,6 +82,10 @@ class BashTool
     'Execute a bash command and return its output'
   end
 
+  def self.render_execution(args)
+    "Running: `#{args['command']}`"
+  end
+
   param name: 'command', type: String, description: 'The bash command to execute'
   def call(params)
     `#{params.fetch('command')}`
@@ -89,6 +97,10 @@ class ReadTool
 
   def self.description
     'Read the contents of a file at the given path'
+  end
+
+  def self.render_execution(args)
+    "Reading file: #{args['path']}"
   end
 
   param name: 'path', type: String, description: 'The path to the file to read'
@@ -104,6 +116,10 @@ class WriteTool
     'Write content to a file at the given path. Creates the file if it does not exist, or overwrites it if it does.'
   end
 
+  def self.render_execution(args)
+    "Writing to file: #{args['path']}"
+  end
+
   param name: 'path', type: String, description: 'The path to the file to write'
   param name: 'content', type: String, description: 'The content to write to the file'
   def call(params)
@@ -117,6 +133,10 @@ class EditTool
 
   def self.description
     'Edit a file by replacing an exact search string with a new string. Provide enough context in the search string to ensure a unique match.'
+  end
+
+  def self.render_execution(args)
+    "Editing file: #{args['path']}"
   end
 
   param name: 'path', type: String, description: 'The path to the file to edit'
