@@ -16,56 +16,69 @@ messages = []
 has_unsent_tool_results = false
 
 loop do
-  if !has_unsent_tool_results
-    print "you: "
-    input = gets.chomp # get text from stdin
-    if input.strip =~ /^(quit|exit)/
-      exit
-    end
-    messages << Message.new('user', [{ text: input }])
-  end
-
-  File.write('raw-messages.json', messages.to_json)
-
-  body = {
-    system_instruction: {
-      parts: [{
-        text: 'You are Jules, a straight and to-the-point general-purpose terminal assistant.'
-      }]
-    },
-    contents: messages.map(&:as_gemini),
-    tools: [{ function_declarations: Tool.all_gemini_declarations }]
-  }
-
-  request = Net::HTTP::Post.new(URL)
-  has_unsent_tool_results = false
-
-  request["Content-Type"] = "application/json"
-  request.body = body.to_json
-  response = HTTP.request(request)
-  parsed = JSON.parse(response.body)
-
-  candidate = parsed['candidates']&.first
-  if candidate.nil?
-    puts "got this back from api: #{parsed}"
-    raise 'no candidates'
-  end
-
-  parts = candidate.dig('content', 'parts')
-  next if parts.nil?
-
-  parts.each do |part|
-    if (text = part['text'])
-      puts "jules: #{text}"
-      messages << Message.new('model', [{ text: }])
+  begin
+    if !has_unsent_tool_results
+      print "you: "
+      input = gets
+      exit if input.nil?
+      input = input.chomp # get text from stdin
+      if input.strip =~ /^(quit|exit)/
+        exit
+      end
+      messages << Message.new('user', [{ text: input }])
     end
 
-    if (call = part['functionCall'])
-      puts "jules: Executing tool: #{call['name']} with args: #{call['args']}"
-      result = Tool.call(call['name'], call['args'])
-      messages << Message.new('model', [part.slice('functionCall')])
-      messages << Message.new('user', [{ functionResponse: { name: call['name'], response: { result: } } }])
-      has_unsent_tool_results = true
+    File.write('raw-messages.json', messages.map(&:as_gemini).to_json)
+
+    system_text = 'You are Jules, a straight and to-the-point general-purpose terminal assistant.'
+    if File.exist?('AGENTS.md')
+      system_text += "\n\nAdditional instructions from AGENTS.md:\n" + File.read('AGENTS.md')
     end
+
+    body = {
+      system_instruction: {
+        parts: [{
+          text: system_text
+        }]
+      },
+      contents: messages.map(&:as_gemini),
+      tools: [{ function_declarations: Tool.all_gemini_declarations }]
+    }
+
+    request = Net::HTTP::Post.new(URL)
+    has_unsent_tool_results = false
+
+    request["Content-Type"] = "application/json"
+    request.body = body.to_json
+    response = HTTP.request(request)
+    parsed = JSON.parse(response.body)
+
+    candidate = parsed['candidates']&.first
+    if candidate.nil?
+      puts "got this back from api: #{parsed}"
+      raise 'no candidates'
+    end
+
+    parts = candidate.dig('content', 'parts')
+    next if parts.nil?
+
+    parts.each do |part|
+      case
+      when text = part['text']
+        puts "jules: #{text}"
+        messages << Message.new('model', [{ text: }])
+      when call = part['functionCall']
+        puts "jules: Executing tool: #{call['name']} with args: #{call['args']}"
+        result = Tool.call(call['name'], call['args'])
+        messages << Message.new('model', [part])
+        messages << Message.new('user', [{ functionResponse: { name: call['name'], response: { result: } } }])
+        has_unsent_tool_results = true
+      else
+        puts "jules: Error: Unknown part received: #{part.inspect}"
+      end
+    end
+  rescue Interrupt
+    puts "\n^C"
+    has_unsent_tool_results = false
   end
 end
