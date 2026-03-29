@@ -16,3 +16,6 @@ Metrics/ClassLength:
 
 Metrics/BlockLength:
   Enabled: false
+
+Layout/LineLength:
+  Enabled: false

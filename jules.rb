@@ -14,6 +14,10 @@ require_relative 'skill'
 skills_dir = File.expand_path('~/.agents/skills')
 FileUtils.mkdir_p(skills_dir)
 
+# Ensure the chats directory exists
+chats_dir = File.expand_path('~/.jules/chats')
+FileUtils.mkdir_p(chats_dir)
+
 # Load all skills
 skills = Skill.load_all
 
@@ -40,6 +44,7 @@ end
 
 client = GeminiClient.new
 messages = []
+session_started_at = nil
 has_unsent_tool_results = false
 
 loop do
@@ -62,6 +67,7 @@ loop do
       next
     when '/clear'
       messages = []
+      session_started_at = nil
       puts "#{UI::CYAN}Conversation cleared.#{UI::RESET}"
       next
     when '/multi'
@@ -77,10 +83,17 @@ loop do
       next if input.empty?
     end
 
+    # Start a new session if this is the first message
+    session_started_at ||= Time.now.strftime('%Y-%m-%dT%H%M%S%Z')
+
     messages << Message.new('user', [{ text: input }])
   end
 
-  File.write('raw-messages.json', messages.map(&:as_gemini).to_json)
+  # Persist the conversation history to a session file
+  if session_started_at
+    log_file = File.join(chats_dir, "#{session_started_at}.json")
+    File.write(log_file, messages.map(&:as_gemini).to_json)
+  end
 
   system_text = 'You are Jules, a straight and to-the-point general-purpose terminal assistant.'
   system_text += "\n\nAdditional instructions from AGENTS.md:\n#{File.read('AGENTS.md')}" if File.exist?('AGENTS.md')

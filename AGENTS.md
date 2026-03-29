@@ -6,6 +6,9 @@ This repository contains the source code for Jules, a terminal-based AI assistan
 - `tool.rb`: Defines the tools Jules can use (e.g., executing bash commands, reading/writing files).
 - `AGENTS.md`: This file, providing repository-specific context to Jules.
 
+## Development Guidelines
+- Before implementing a new tool, always review the implementation of existing tools (e.g., `tools/edit_tool.rb`) to ensure consistency.
+
 ## Key Environment Variables
 - `GOOGLE_GENERATIVE_AI_API_KEY`: Required to authenticate with the Gemini API.
 

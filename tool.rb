@@ -74,11 +74,9 @@ module Tool
   end
 
   def self.call(name, args)
-    begin
-      find(name).new.call(args)
-    rescue StandardError => e
-      "Error executing tool '#{name}': #{e.class} - #{e.message}"
-    end
+    find(name).new.call(args)
+  rescue StandardError => e
+    "Error executing tool '#{name}': #{e.class} - #{e.message}"
   end
 
   def as_json_type(type)
