@@ -13,3 +13,8 @@ This repository contains the source code for Jules, a terminal-based AI assistan
 ## Language and Setup
 - Written in Ruby.
 - Uses standard libraries (`json`, `net/http`, `uri`).
+
+## Linting
+- This project uses RuboCop for linting.
+- Run `bundle exec rubocop -A` to auto-correct offenses.
+- The configuration is in `.rubocop.yml`. Method length and class length rules are disabled.

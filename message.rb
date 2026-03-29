@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Message
   # @param role [String] user or model
   # @param parts [Array]

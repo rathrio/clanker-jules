@@ -1,10 +1,13 @@
+# frozen_string_literal: true
+
 require 'json'
 require 'net/http'
 require 'uri'
 
 class GeminiClient
   # GEMINI_MODEL = 'gemini-flash-latest'
-  GEMINI_MODEL = 'gemini-pro-latest'
+  # GEMINI_MODEL = 'gemini-pro-latest'
+  GEMINI_MODEL = 'gemini-2.5-pro'
 
   def initialize
     @api_key = ENV.fetch('GOOGLE_GENERATIVE_AI_API_KEY')
@@ -15,7 +18,7 @@ class GeminiClient
 
   def generate_content(body)
     request = Net::HTTP::Post.new(@url)
-    request["Content-Type"] = "application/json"
+    request['Content-Type'] = 'application/json'
     request.body = body.to_json
 
     response = @http.request(request)
