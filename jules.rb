@@ -47,6 +47,23 @@ messages = []
 session_started_at = nil
 has_unsent_tool_results = false
 
+def print_tool_preview(tool_name, result)
+  return if result.nil? || result.empty?
+
+  header = "  #{UI::COMMENT}╭─ Tool Result Preview (#{tool_name}) ─"
+  puts header
+
+  lines = result.to_s.lines
+  if lines.count > 6
+    lines[0..4].each { |line| puts "  #{UI::COMMENT}│ #{line.chomp}" }
+    puts "  #{UI::COMMENT}│ [...] (#{lines.count - 5} more lines)"
+  else
+    lines.each { |line| puts "  #{UI::COMMENT}│ #{line.chomp}" }
+  end
+
+  puts "  #{UI::COMMENT}╰─"
+end
+
 loop do
   unless has_unsent_tool_results
     input = Readline.readline(UI.user_prompt, true)
@@ -160,6 +177,7 @@ loop do
       tool_class = Tool.find(call['name'])
       puts "#{UI::COMMENT}#{tool_class.render_execution(call['args'])}#{UI::RESET}"
       result = Tool.call(call['name'], call['args'])
+      print_tool_preview(call['name'], result)
       tool_response_parts << { functionResponse: { name: call['name'], response: { result: } } }
     elsif part.key?('thought') || part.key?('thoughtSignature')
       # thinking parts - already stored with the model message above
