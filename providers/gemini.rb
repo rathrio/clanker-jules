@@ -6,7 +6,7 @@ require 'uri'
 require 'json'
 
 class GeminiProvider
-  include BaseProvider
+  include Provider
   # MODEL = 'gemini-flash-latest'
   # MODEL = 'gemini-pro-latest'
   MODEL = 'gemini-2.5-pro'

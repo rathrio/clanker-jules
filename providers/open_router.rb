@@ -6,7 +6,7 @@ require 'uri'
 require 'json'
 
 class OpenRouterProvider
-  include BaseProvider
+  include Provider
   # MODEL = 'openai/gpt-4o'
   MODEL = 'qwen/qwen3-coder'
   # MODEL = 'anthropic/claude-3-haiku'

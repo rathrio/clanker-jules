@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module BaseProvider
+module Provider
   def generate_content(_history, _tools, system_prompt: nil)
     raise NotImplementedError, "#{self.class} has not implemented method '#{__method__}'"
   end
