@@ -23,7 +23,7 @@ class WebfetchTool
       response = Net::HTTP.get_response(jina_url)
 
       if response.is_a?(Net::HTTPSuccess)
-        response.body
+        response.body.force_encoding('UTF-8')
       else
         "Error: Failed to fetch webpage. HTTP Status: #{response.code}"
       end
