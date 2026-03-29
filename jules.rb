@@ -3,10 +3,19 @@
 
 require 'json'
 require 'readline'
+require 'fileutils'
 
 require_relative 'message'
 require_relative 'tool'
 require_relative 'gemini_client'
+require_relative 'skill'
+
+# Ensure the skills directory exists
+skills_dir = File.expand_path('~/.agents/skills')
+FileUtils.mkdir_p(skills_dir)
+
+# Load all skills
+skills = Skill.load_all
 
 module UI
   PINK   = "\e[38;2;255;121;198m"
@@ -75,6 +84,13 @@ loop do
 
   system_text = 'You are Jules, a straight and to-the-point general-purpose terminal assistant.'
   system_text += "\n\nAdditional instructions from AGENTS.md:\n#{File.read('AGENTS.md')}" if File.exist?('AGENTS.md')
+
+  unless skills.empty?
+    system_text += "\n\nThe following skills are available:\n"
+    skills.each do |skill|
+      system_text += "<skill><name>#{skill.name}</name><description>#{skill.description}</description></skill>\n"
+    end
+  end
 
   body = {
     system_instruction: {

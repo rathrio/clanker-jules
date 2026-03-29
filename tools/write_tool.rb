@@ -14,7 +14,7 @@ class WriteTool
   param name: 'path', type: String, description: 'The path to the file to write'
   param name: 'content', type: String, description: 'The content to write to the file'
   def call(params)
-    File.write(params.fetch('path'), params.fetch('content'))
+    File.write(File.expand_path(params.fetch('path')), params.fetch('content'))
     params.fetch('path')
   end
 end
