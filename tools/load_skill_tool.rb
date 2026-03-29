@@ -19,7 +19,7 @@ class LoadSkillTool
 
   def call(args)
     skill_name = args['name']
-    skill = Skill.load_all.find { |s| s.name == skill_name }
+    skill = Skill.find(skill_name)
 
     if skill
       skill.content

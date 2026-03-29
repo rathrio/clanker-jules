@@ -5,15 +5,31 @@ require 'yaml'
 class Skill
   attr_reader :name, :description, :content
 
+  @all = nil
+
+  class << self
+    def all
+      @all ||= begin
+        skills_dir = File.expand_path('~/.agents/skills')
+        skill_files = Dir.glob(File.join(skills_dir, '*/SKILL.md'))
+
+        skill_files.each_with_object({}) do |file, skills|
+          skill = new(file)
+          next unless skill.name
+
+          skills[skill.name] = skill
+        end
+      end
+    end
+
+    def find(name)
+      all[name]
+    end
+  end
+
   def initialize(path)
     @path = path
     @name, @description, @content = parse_skill_file
-  end
-
-  def self.load_all
-    skills_dir = File.expand_path('~/.agents/skills')
-    skill_files = Dir.glob(File.join(skills_dir, '*/SKILL.md'))
-    skill_files.map { |file| new(file) }.compact
   end
 
   private

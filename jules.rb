@@ -56,7 +56,7 @@ Terminal.print_provider(PROVIDER.class, PROVIDER.model)
 messages = []
 session_started_at = nil
 has_unsent_tool_results = false
-skills = Skill.load_all
+skills = Skill.all
 
 loop do
   unless has_unsent_tool_results
@@ -88,7 +88,7 @@ loop do
 
   unless skills.empty?
     system_prompt += "\n\nThe following skills are available:\n"
-    skills.each do |skill|
+    skills.each_value do |skill|
       system_prompt += "<skill><name>#{skill.name}</name><description>#{skill.description}</description></skill>\n"
     end
   end
