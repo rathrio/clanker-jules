@@ -42,6 +42,22 @@ TOOLS = {
       File.write(args.fetch('path'), args.fetch('content'))
       args.fetch('path')
     }
+  },
+  bash: {
+    declaration: {
+      name: 'bash',
+      description: 'Execute a bash command and return its output',
+      parameters: {
+        type: 'object',
+        properties: {
+          command: { type: 'string', description: 'The bash command to execute' }
+        },
+        required: ['command']
+      }
+    },
+    execute: -> (args) {
+      `#{args.fetch('command')}`
+    }
   }
 }
 
@@ -91,7 +107,9 @@ loop do
     end
 
     if (call = part['functionCall'])
+      puts "jules: Executing tool: #{call['name']} with args: #{call['args']}"
       result = TOOLS.fetch(call['name'].to_sym)[:execute].call(call['args'])
+
       messages << { role: 'model', parts: [part.slice('functionCall')] }
       messages << { role: 'user', parts: [{ functionResponse: { name: call['name'], response: { result: } } }] }
       has_unsent_tool_results = true
