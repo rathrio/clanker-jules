@@ -91,6 +91,36 @@ messages = []
 session_started_at = nil
 skills = Skill.all
 
+system_prompt_path = File.expand_path('~/.jules/SYSTEM.md')
+system_prompt = if File.exist?(system_prompt_path)
+                  File.read(system_prompt_path)
+                else
+                  'You are Jules, a straight and to-the-point general-purpose terminal assistant.'
+                end
+system_prompt += "\n\nAdditional instructions from AGENTS.md:\n#{File.read('AGENTS.md')}" if File.exist?('AGENTS.md')
+
+unless skills.empty?
+  skill_definitions = skills.each_value.map do |skill|
+    "<skill><name>#{skill.name}</name><description>#{skill.description}</description></skill>"
+  end
+  system_prompt += "\n\nThe following skills are available:\n#{skill_definitions.join("\n")}"
+end
+
+tools = Tool.declarations(format: PROVIDER.tool_format)
+
+flush_chat_log = lambda do
+  next unless session_started_at && !messages.empty?
+
+  log_file = File.join(CHATS_DIR, "#{session_started_at}.json")
+  File.write(log_file, Message.format_history(messages, format: :gemini).to_json)
+end
+
+at_exit do
+  flush_chat_log.call
+rescue StandardError => e
+  warn "Failed to save chat log: #{e.message}"
+end
+
 loop do
   input = Terminal.read_input
   next if input.empty?
@@ -110,28 +140,6 @@ loop do
   messages << Message.new('user', [{ text: input }])
 
   loop do
-    if session_started_at
-      log_file = File.join(CHATS_DIR, "#{session_started_at}.json")
-      File.write(log_file, Message.format_history(messages, format: :gemini).to_json)
-    end
-
-    system_prompt_path = File.expand_path('~/.jules/SYSTEM.md')
-    system_prompt = if File.exist?(system_prompt_path)
-                      File.read(system_prompt_path)
-                    else
-                      'You are Jules, a straight and to-the-point general-purpose terminal assistant.'
-                    end
-    system_prompt += "\n\nAdditional instructions from AGENTS.md:\n#{File.read('AGENTS.md')}" if File.exist?('AGENTS.md')
-
-    unless skills.empty?
-      system_prompt += "\n\nThe following skills are available:\n"
-      skills.each_value do |skill|
-        system_prompt += "<skill><name>#{skill.name}</name><description>#{skill.description}</description></skill>\n"
-      end
-    end
-
-    tools = Tool.declarations(format: PROVIDER.tool_format)
-
     response = Terminal.with_spinner do
       PROVIDER.generate_content(messages, tools, system_prompt: system_prompt)
     end
