@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'readline'
+require_relative 'terminal_markdown_renderer'
 
 module Terminal
   PINK    = "\e[38;2;255;121;198m"
@@ -58,7 +59,11 @@ module Terminal
 
   def print_assistant(text)
     puts "#{PURPLE}#{BOLD}jules:#{RESET}"
-    puts text
+    puts render_markdown(text)
+  end
+
+  def render_markdown(text)
+    TerminalMarkdownRenderer.render(text)
   end
 
   def print_tool_execution(text)
