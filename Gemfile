@@ -2,6 +2,8 @@
 
 source 'https://rubygems.org'
 
+gem 'reline'
+
 gem 'minitest'
 gem 'rake'
 gem 'rubocop'
