@@ -12,6 +12,16 @@ class TerminalTest < Minitest::Test
     Terminal::Markdown.remove_instance_variable(:@glow_available) if Terminal::Markdown.instance_variable_defined?(:@glow_available)
   end
 
+  def test_spinner_label_returns_a_known_take_with_ellipsis
+    label = Terminal.spinner_label
+
+    assert label.end_with?('...')
+
+    sampled_take = label.delete_suffix('...')
+
+    assert_includes Terminal::CYNICAL_SPINNER_TAKES, sampled_take
+  end
+
   def test_render_markdown_raises_when_glow_missing
     with_stubbed_singleton_method(Terminal::Markdown, :glow_available?, proc { false }) do
       error = assert_raises(RuntimeError) { Terminal::Markdown.render('hello') }

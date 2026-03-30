@@ -4,6 +4,8 @@ require 'reline'
 require 'io/console'
 require 'open3'
 
+require_relative 'terminal_cynical_spinner_takes'
+
 module Terminal
   PINK    = "\e[38;2;255;121;198m"
   PURPLE  = "\e[38;2;189;147;249m"
@@ -17,6 +19,10 @@ module Terminal
   BOLD    = "\e[1m"
 
   module_function
+
+  def spinner_label
+    "#{CYNICAL_SPINNER_TAKES.sample}..."
+  end
 
   def user_prompt
     "\x01#{GREEN}#{BOLD}\x02you:\x01#{RESET}\x02 "
@@ -141,12 +147,12 @@ module Terminal
     puts "#{CYAN}#{text}#{RESET}"
   end
 
-  def with_spinner(label: 'clanking...')
+  def with_spinner(label: spinner_label)
     spinner_thread = Thread.new do
       spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
       i = 0
       loop do
-        print "\r\e[K#{COMMENT}#{spinner[i % spinner.length]} #{label}#{RESET}"
+        print "\r\e[K#{PINK}#{spinner[i % spinner.length]} #{label}#{RESET}"
         sleep 0.1
         i += 1
       end
