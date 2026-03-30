@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
-require_relative 'provider'
+require_relative '../provider'
 require 'net/http'
 require 'uri'
 require 'json'
 
 class OpenRouterProvider
   include Provider
+
+  register_provider 'kiro', preset: :kiro
 
   OPENROUTER_DEFAULTS = {
     base_url: 'https://openrouter.ai/api/v1/chat/completions',
@@ -47,10 +49,22 @@ class OpenRouterProvider
     :openai
   end
 
-  def generate_content(history, tools, system_prompt: nil)
-    http = Net::HTTP.new(@uri.host, @uri.port)
-    http.use_ssl = @uri.scheme == 'https'
+  NETWORK_ERRORS = [
+    Net::OpenTimeout,
+    Net::ReadTimeout,
+    Timeout::Error,
+    Errno::ECONNRESET,
+    Errno::ECONNREFUSED,
+    EOFError,
+    SocketError,
+    IOError
+  ].freeze
 
+  DEFAULT_OPEN_TIMEOUT = 10
+  DEFAULT_READ_TIMEOUT = 300
+  DEFAULT_RETRIES = 2
+
+  def generate_content(history, tools, system_prompt: nil)
     messages = Message.format_history(history, format: :openai)
     messages.unshift({ role: 'system', content: system_prompt }) if system_prompt
 
@@ -62,8 +76,25 @@ class OpenRouterProvider
       tools: tools
     }.to_json
 
-    response = http.request(request)
-    JSON.parse(response.body)
+    retries_left = DEFAULT_RETRIES
+
+    begin
+      http = Net::HTTP.new(@uri.host, @uri.port)
+      http.use_ssl = @uri.scheme == 'https'
+      http.open_timeout = DEFAULT_OPEN_TIMEOUT
+      http.read_timeout = DEFAULT_READ_TIMEOUT
+
+      response = http.request(request)
+      JSON.parse(response.body)
+    rescue *NETWORK_ERRORS => e
+      retries_left -= 1
+      return { 'error' => { 'message' => "OpenRouter network error: #{e.class} - #{e.message}" } } if retries_left.negative?
+
+      sleep(0.25 * (DEFAULT_RETRIES - retries_left))
+      retry
+    rescue JSON::ParserError => e
+      { 'error' => { 'message' => "Invalid JSON response from OpenRouter: #{e.message}" } }
+    end
   end
 
   def parse_response(response)

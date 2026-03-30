@@ -9,8 +9,7 @@ require_relative 'message'
 require_relative 'tool'
 require_relative 'skill'
 require_relative 'terminal'
-require_relative 'providers/gemini_provider'
-require_relative 'providers/open_router_provider'
+require_relative 'provider'
 
 # --- Configuration ---
 options = {
@@ -21,7 +20,7 @@ options = {
 OptionParser.new do |opts|
   opts.banner = "Usage: #{File.basename($PROGRAM_NAME)} [options]"
 
-  opts.on('-p', '--provider PROVIDER', 'Provider: gemini, openrouter, or kiro') do |provider|
+  opts.on('-p', '--provider PROVIDER', "Provider: #{Provider.all_names.join(', ')}") do |provider|
     options[:provider] = provider.downcase
   end
 
@@ -35,17 +34,12 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-PROVIDER = case options[:provider]
-           when 'openrouter'
-             OpenRouterProvider.new(model: options[:model])
-           when 'kiro'
-             OpenRouterProvider.new(model: options[:model], preset: :kiro)
-           when 'gemini'
-             GeminiProvider.new(model: options[:model])
-           else
-             warn "Unknown provider '#{options[:provider]}'. Use 'gemini', 'openrouter', or 'kiro'."
-             exit 1
-           end
+begin
+  PROVIDER = Provider.build(options[:provider], model: options[:model])
+rescue KeyError
+  warn "Unknown provider '#{options[:provider]}'. Use #{Provider.all_names.join(', ')}."
+  exit 1
+end
 
 # Ensure directories exist
 FileUtils.mkdir_p(File.expand_path('~/.agents/skills'))

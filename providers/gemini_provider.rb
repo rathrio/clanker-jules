@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'provider'
+require_relative '../provider'
 require 'net/http'
 require 'uri'
 require 'json'
@@ -8,9 +8,9 @@ require 'json'
 class GeminiProvider
   include Provider
 
-  # DEFAULT_MODEL = 'gemini-flash-latest'
+  DEFAULT_MODEL = 'gemini-flash-latest'
   # DEFAULT_MODEL = 'gemini-pro-latest'
-  DEFAULT_MODEL = 'gemini-2.5-pro'
+  # DEFAULT_MODEL = 'gemini-2.5-pro'
 
   def initialize(model: nil)
     @api_key = ENV.fetch('GOOGLE_GENERATIVE_AI_API_KEY')
