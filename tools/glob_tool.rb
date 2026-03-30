@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'open3'
 require_relative 'rg'
 
 class GlobTool
@@ -32,7 +33,7 @@ class GlobTool
     return "Error: path not found: #{base_path}" unless Dir.exist?(base_path)
     return 'Error: pattern cannot be empty.' if pattern.strip.empty?
 
-    stdout, stderr, status = run(build_command(pattern, base_path, exclude_globs, include_dotfiles))
+    stdout, stderr, status = Open3.capture3(*build_command(pattern, base_path, exclude_globs, include_dotfiles))
 
     return "No files matched pattern '#{pattern}'." if status.exitstatus == 1
     return "Error: rg failed - #{stderr.strip}" unless status.success?

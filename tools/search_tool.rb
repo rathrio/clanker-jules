@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'open3'
 require_relative 'rg'
 
 class SearchTool
@@ -49,7 +50,7 @@ class SearchTool
       exclude_globs: exclude_globs
     }
 
-    stdout, stderr, status = run(build_command(query, base_path, options))
+    stdout, stderr, status = Open3.capture3(*build_command(query, base_path, options))
 
     return "No matches found for '#{query}'." if status.exitstatus == 1
     return "Error: rg failed - #{stderr.strip}" unless status.success?

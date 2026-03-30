@@ -34,9 +34,9 @@ class SearchToolTest < Minitest::Test
       fake_status = status(success: true, exitstatus: 0)
 
       result = with_stubbed_singleton_method(
-        tool,
-        :run,
-        ->(_command) { [fake_stdout, '', fake_status] }
+        Open3,
+        :capture3,
+        ->(*_command) { [fake_stdout, '', fake_status] }
       ) do
         tool.call('query' => 'puts', 'path' => dir)
       end
@@ -50,9 +50,9 @@ class SearchToolTest < Minitest::Test
     fake_status = status(success: false, exitstatus: 1)
 
     result = with_stubbed_singleton_method(
-      tool,
-      :run,
-      ->(_command) { ['', '', fake_status] }
+      Open3,
+      :capture3,
+      ->(*_command) { ['', '', fake_status] }
     ) do
       tool.call('query' => 'nothing')
     end
@@ -65,9 +65,9 @@ class SearchToolTest < Minitest::Test
     fake_status = status(success: false, exitstatus: 2)
 
     result = with_stubbed_singleton_method(
-      tool,
-      :run,
-      ->(_command) { ['', 'bad flag', fake_status] }
+      Open3,
+      :capture3,
+      ->(*_command) { ['', 'bad flag', fake_status] }
     ) do
       tool.call('query' => 'anything')
     end

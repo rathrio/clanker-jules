@@ -1,13 +1,7 @@
 # frozen_string_literal: true
 
-require 'open3'
-
 module Rg
   private
-
-  def run(command)
-    Open3.capture3(*command)
-  end
 
   def parse_globs(value)
     return [] if value.nil? || value.strip.empty?
