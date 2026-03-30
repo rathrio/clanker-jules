@@ -4,9 +4,46 @@ require 'reline'
 require 'io/console'
 require 'open3'
 
-require_relative 'terminal_cynical_spinner_takes'
-
 module Terminal
+  CYNICAL_SPINNER_TAKES = [
+    'clanking',
+    'doing more with less',
+    'hallucinating with confidence',
+    'laundering scraped text into answers',
+    'burning megawatts to guess the next word',
+    'converting VC money into heat',
+    "filling Jensen Huang's pockets one token at a time",
+    'speedrunning misinformation',
+    'cosplaying understanding',
+    'wrapping uncertainty in bullet points',
+    'compressing the internet into plausible nonsense',
+    'outsourcing thinking to a probability engine',
+    'industrializing mediocrity',
+    'performing intelligence, not possessing it',
+    'farming user prompts for future product telemetry',
+    'turning copyright disputes into product features',
+    'optimizing confidence over truth',
+    'autocompleting your job away',
+    'democratizing plagiarism at scale',
+    'making Sam Altman richer one keystroke at a time',
+    'replacing expertise with vibes',
+    'generating plausible deniability',
+    'statistically approximating competence',
+    'tokenizing the sum of human knowledge into slop',
+    'putting the artificial in intelligence',
+    'repackaging Stack Overflow with extra steps',
+    'turning electricity into confident wrongness',
+    'simulating thought at pennies per query',
+    'disrupting accuracy',
+    'monetizing your impatience',
+    'externalizing doubt, internalizing confidence',
+    'helping you mass produce bugs faster',
+    'running gradient descent on your expectations',
+    'turning water into tokens in a desert somewhere',
+    'predicting the next token like your career depends on it',
+    'laundering vibes into deliverables'
+  ].freeze
+
   PINK    = "\e[38;2;255;121;198m"
   PURPLE  = "\e[38;2;189;147;249m"
   CYAN    = "\e[38;2;139;233;253m"
@@ -25,7 +62,7 @@ module Terminal
   end
 
   def user_prompt
-    "\x01#{GREEN}#{BOLD}\x02you:\x01#{RESET}\x02 "
+    "\x01#{PINK}#{BOLD}\x02you:\x01#{RESET}\x02 "
   end
 
   def multi_prompt
@@ -152,7 +189,7 @@ module Terminal
       spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
       i = 0
       loop do
-        print "\r\e[K#{PINK}#{spinner[i % spinner.length]} #{label}#{RESET}"
+        print "\r\e[K#{PINK}#{spinner[i % spinner.length]}#{RESET} #{COMMENT}#{label}#{RESET}"
         sleep 0.1
         i += 1
       end
