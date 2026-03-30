@@ -6,9 +6,9 @@ require 'timeout'
 require 'net/http'
 require 'provider'
 
-class OpenRouterProviderTest < Minitest::Test
+class OpenAICompatibleProviderTest < Minitest::Test
   def test_generate_content_returns_error_hash_on_network_timeout
-    provider = OpenRouterProvider.new(preset: :kiro)
+    provider = OpenAICompatibleProvider.new(preset: :kiro)
 
     failing_http = Object.new
     failing_http.define_singleton_method(:use_ssl=) { |_value| nil }
@@ -19,12 +19,12 @@ class OpenRouterProviderTest < Minitest::Test
     with_stubbed_singleton_method(Net::HTTP, :new, ->(_host, _port) { failing_http }) do
       response = provider.generate_content([], [], system_prompt: 'system')
 
-      assert_equal 'OpenRouter network error: Net::ReadTimeout - Net::ReadTimeout with "timed out"', response.dig('error', 'message')
+      assert_equal 'Kiro network error: Net::ReadTimeout - Net::ReadTimeout with "timed out"', response.dig('error', 'message')
     end
   end
 
   def test_generate_content_retries_then_succeeds
-    provider = OpenRouterProvider.new(preset: :kiro)
+    provider = OpenAICompatibleProvider.new(preset: :kiro)
 
     call_count = 0
     flaky_http = Object.new

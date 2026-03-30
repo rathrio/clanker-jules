@@ -46,7 +46,7 @@ FileUtils.mkdir_p(File.expand_path('~/.agents/skills'))
 CHATS_DIR = File.expand_path('~/.jules/chats')
 FileUtils.mkdir_p(CHATS_DIR)
 
-Terminal.print_provider(PROVIDER.class, PROVIDER.model)
+Terminal.print_provider(PROVIDER.provider_label, PROVIDER.model)
 
 # --- Main Application ---
 messages = []

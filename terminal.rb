@@ -53,8 +53,8 @@ module Terminal
     end
   end
 
-  def print_provider(provider_class_name, model)
-    puts "#{COMMENT}Provider: #{provider_class_name} (#{model})#{RESET}"
+  def print_provider(provider_label, model)
+    puts "#{COMMENT}Provider: #{provider_label} (#{model})#{RESET}"
   end
 
   def print_assistant(text)

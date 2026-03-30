@@ -41,6 +41,10 @@ module Provider
   def tool_format
     raise NotImplementedError, "#{self.class} has not implemented method '#{__method__}'"
   end
+
+  def provider_label
+    self.class.to_s.sub(/Provider$/, '')
+  end
 end
 
 Dir[File.join(__dir__, 'providers', '*_provider.rb')].each { |file| require file }

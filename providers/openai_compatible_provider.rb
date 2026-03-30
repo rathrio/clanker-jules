@@ -5,12 +5,16 @@ require 'net/http'
 require 'uri'
 require 'json'
 
-class OpenRouterProvider
+class OpenAICompatibleProvider
   include Provider
 
+  register_provider 'openai-compatible'
+  register_provider 'openai_compatible'
+  register_provider 'openrouter', preset: :openrouter
   register_provider 'kiro', preset: :kiro
 
-  OPENROUTER_DEFAULTS = {
+  OPENAI_COMPATIBLE_DEFAULTS = {
+    provider_label: 'OpenRouter',
     base_url: 'https://openrouter.ai/api/v1/chat/completions',
     api_key_env: 'OPENROUTER_API_KEY',
     default_model: 'openai/gpt-5.3-codex',
@@ -18,6 +22,7 @@ class OpenRouterProvider
   }.freeze
 
   KIRO_DEFAULTS = {
+    provider_label: 'Kiro',
     base_url: ENV.fetch('KIRO_BASE_URL', 'http://localhost:41929/v1/chat/completions'),
     api_key_env: 'KIRO_API_KEY',
     api_key_fallback: 'kiro-local-proxy',
@@ -26,8 +31,9 @@ class OpenRouterProvider
   }.freeze
 
   def initialize(model: nil, preset: nil, base_url: nil, api_key: nil, max_tokens: nil)
-    defaults = preset == :kiro ? KIRO_DEFAULTS : OPENROUTER_DEFAULTS
+    defaults = preset == :kiro ? KIRO_DEFAULTS : OPENAI_COMPATIBLE_DEFAULTS
 
+    @provider_label = defaults[:provider_label]
     @uri = URI.parse(base_url || defaults[:base_url])
     @model = model || defaults[:default_model]
     @max_tokens = max_tokens || defaults[:max_tokens]
@@ -43,7 +49,7 @@ class OpenRouterProvider
     }
   end
 
-  attr_reader :model
+  attr_reader :model, :provider_label
 
   def tool_format
     :openai
@@ -88,12 +94,12 @@ class OpenRouterProvider
       JSON.parse(response.body)
     rescue *NETWORK_ERRORS => e
       retries_left -= 1
-      return { 'error' => { 'message' => "OpenRouter network error: #{e.class} - #{e.message}" } } if retries_left.negative?
+      return { 'error' => { 'message' => "#{@provider_label} network error: #{e.class} - #{e.message}" } } if retries_left.negative?
 
       sleep(0.25 * (DEFAULT_RETRIES - retries_left))
       retry
     rescue JSON::ParserError => e
-      { 'error' => { 'message' => "Invalid JSON response from OpenRouter: #{e.message}" } }
+      { 'error' => { 'message' => "Invalid JSON response from #{@provider_label}: #{e.message}" } }
     end
   end
 
