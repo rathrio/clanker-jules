@@ -1,13 +1,15 @@
 # Jules
 
-Jules is a terminal-based AI assistant written in Ruby. It supports multiple LLM providers and can use local tools to inspect files, search code, run shell commands, and edit your workspace from chat.
+Jules is a terminal-based AI assistant written in Ruby. It supports multiple LLM
+providers and can use local tools to inspect files, search code, run shell
+commands, and edit your workspace from chat.
 
-Core files:
-- `jules.rb` – main entry point/chat loop
-- `provider.rb` + `providers/` – model provider interface and implementations
-- `tool.rb` + `tools/` – tool definitions and implementations
-- `terminal.rb` – terminal UI/rendering
-- `message.rb` – provider-specific message formatting
+I primarily wrote this for myself for pedagogical reasons to demystify coding
+agents. No LLM gems are used here - just the Ruby standard library against
+inference endpoints. I started out by implementing the core loop (in `jules.rb`)
+by hand against the gemini API. The only tools I wrote by hand are `WriteTool`,
+`ReadTool` and `BashTool`. From that point on I let `jules` edit itself to reach
+to where we are at now.
 
 ## Installation (macOS)
 
