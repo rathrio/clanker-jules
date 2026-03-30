@@ -1,3 +1,7 @@
+plugins:
+  - rubocop-minitest
+  - rubocop-rake
+
 AllCops:
   NewCops: enable
   Exclude:
@@ -27,4 +31,7 @@ Metrics/CyclomaticComplexity:
   Enabled: false
 
 Metrics/PerceivedComplexity:
+  Enabled: false
+
+Minitest/MultipleAssertions:
   Enabled: false

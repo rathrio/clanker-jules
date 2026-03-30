@@ -10,7 +10,15 @@ module Tool
     Float => 'number'
   }.freeze
 
+  module ClassMethods
+    def render_execution(args)
+      "Executing #{tool_name} with args: #{args.to_json}"
+    end
+  end
+
   def self.included(klass)
+    klass.extend(ClassMethods)
+
     klass.define_singleton_method(:param) do |param|
       @params ||= []
       @params << param
@@ -49,10 +57,6 @@ module Tool
           }
         }
       }
-    end
-
-    klass.define_singleton_method(:render_execution) do |args|
-      "Executing #{klass.tool_name} with args: #{args.to_json}"
     end
 
     @known_tools ||= {}

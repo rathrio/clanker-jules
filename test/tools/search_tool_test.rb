@@ -1,0 +1,77 @@
+# frozen_string_literal: true
+
+require_relative '../test_helper'
+
+class SearchToolTest < Minitest::Test
+  def test_returns_error_when_query_is_empty
+    result = SearchTool.new.call('query' => '   ')
+
+    assert_equal 'Error: query cannot be empty.', result
+  end
+
+  def test_returns_error_when_path_does_not_exist
+    result = SearchTool.new.call(
+      'query' => 'hello',
+      'path' => '/tmp/definitely-missing-search-path-123'
+    )
+
+    assert_match(/Error: path not found:/, result)
+  end
+
+  def test_returns_error_for_invalid_regex_when_regex_mode_is_enabled
+    result = SearchTool.new.call(
+      'query' => '([a-z',
+      'use_regex' => 'true'
+    )
+
+    assert_match(/Error: invalid regex - /, result)
+  end
+
+  def test_formats_successful_rg_results_relative_to_base_path
+    Dir.mktmpdir do |dir|
+      tool = SearchTool.new
+      fake_stdout = "#{dir}/lib/a.rb:3:1:puts :a\n#{dir}/lib/b.rb:5:1:puts :b\n"
+      fake_status = status(success: true, exitstatus: 0)
+
+      result = with_stubbed_singleton_method(
+        tool,
+        :run,
+        ->(_command) { [fake_stdout, '', fake_status] }
+      ) do
+        tool.call('query' => 'puts', 'path' => dir)
+      end
+
+      assert_equal "lib/a.rb:3:puts :a\nlib/b.rb:5:puts :b", result
+    end
+  end
+
+  def test_returns_no_matches_message_when_rg_exitstatus_is_one
+    tool = SearchTool.new
+    fake_status = status(success: false, exitstatus: 1)
+
+    result = with_stubbed_singleton_method(
+      tool,
+      :run,
+      ->(_command) { ['', '', fake_status] }
+    ) do
+      tool.call('query' => 'nothing')
+    end
+
+    assert_equal "No matches found for 'nothing'.", result
+  end
+
+  def test_returns_rg_error_message_when_rg_fails
+    tool = SearchTool.new
+    fake_status = status(success: false, exitstatus: 2)
+
+    result = with_stubbed_singleton_method(
+      tool,
+      :run,
+      ->(_command) { ['', 'bad flag', fake_status] }
+    ) do
+      tool.call('query' => 'anything')
+    end
+
+    assert_equal 'Error: rg failed - bad flag', result
+  end
+end
