@@ -42,6 +42,10 @@ module Provider
     raise NotImplementedError, "#{self.class} has not implemented method '#{__method__}'"
   end
 
+  def list_models
+    raise NotImplementedError, "#{self.class} does not support model listing"
+  end
+
   def provider_label
     self.class.to_s.sub(/Provider$/, '')
   end

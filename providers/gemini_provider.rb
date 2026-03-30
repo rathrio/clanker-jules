@@ -70,4 +70,23 @@ class GeminiProvider
 
     { type: :error, data: 'Unknown response format' }
   end
+
+  def list_models
+    uri = URI("https://generativelanguage.googleapis.com/v1beta/models?key=#{@api_key}")
+
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+
+    request = Net::HTTP::Get.new(uri)
+    response = http.request(request)
+    parsed = JSON.parse(response.body)
+
+    return parsed['models'] if parsed['models'].is_a?(Array)
+
+    []
+  rescue JSON::ParserError => e
+    { error: "Invalid JSON response from Gemini: #{e.message}" }
+  rescue StandardError => e
+    { error: "Gemini network error: #{e.class} - #{e.message}" }
+  end
 end

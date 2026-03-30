@@ -14,7 +14,8 @@ require_relative 'provider'
 # --- Configuration ---
 options = {
   provider: ENV.fetch('JULES_PROVIDER', 'gemini').downcase,
-  model: ENV.fetch('JULES_MODEL', nil)
+  model: ENV.fetch('JULES_MODEL', nil),
+  list_models: false
 }
 
 OptionParser.new do |opts|
@@ -26,6 +27,10 @@ OptionParser.new do |opts|
 
   opts.on('-m', '--model MODEL', 'Model name for the selected provider') do |model|
     options[:model] = model
+  end
+
+  opts.on('-l', '--list-models', 'List models for the selected provider and exit') do
+    options[:list_models] = true
   end
 
   opts.on('-h', '--help', 'Show this help') do
@@ -45,6 +50,30 @@ end
 FileUtils.mkdir_p(File.expand_path('~/.agents/skills'))
 CHATS_DIR = File.expand_path('~/.jules/chats')
 FileUtils.mkdir_p(CHATS_DIR)
+
+if options[:list_models]
+  begin
+    models = PROVIDER.list_models
+    if models.is_a?(Hash) && models[:error]
+      Terminal.print_error(models[:error])
+      exit 1
+    end
+
+    models.each do |entry|
+      next unless entry.is_a?(Hash)
+
+      model_name = entry['id'] || entry['name']
+      next unless model_name
+
+      puts(model_name)
+    end
+
+    exit
+  rescue NotImplementedError => e
+    Terminal.print_error(e.message)
+    exit 1
+  end
+end
 
 Terminal.print_provider(PROVIDER.provider_label, PROVIDER.model)
 

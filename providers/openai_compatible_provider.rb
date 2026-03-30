@@ -17,7 +17,7 @@ class OpenAICompatibleProvider
     provider_label: 'OpenRouter',
     base_url: 'https://openrouter.ai/api/v1/chat/completions',
     api_key_env: 'OPENROUTER_API_KEY',
-    default_model: 'openai/gpt-5.3-codex',
+    default_model: 'qwen/qwen3-coder-flash',
     max_tokens: 4096
   }.freeze
 
@@ -123,5 +123,35 @@ class OpenAICompatibleProvider
     end
 
     { type: :error, data: 'Unknown response format' }
+  end
+
+  def list_models
+    models_uri = URI.parse("#{@uri.scheme}://#{@uri.host}/api/v1/models")
+    request = Net::HTTP::Get.new(models_uri.request_uri, @headers)
+
+    retries_left = DEFAULT_RETRIES
+
+    begin
+      http = Net::HTTP.new(models_uri.host, models_uri.port)
+      http.use_ssl = models_uri.scheme == 'https'
+      http.open_timeout = DEFAULT_OPEN_TIMEOUT
+      http.read_timeout = DEFAULT_READ_TIMEOUT
+
+      response = http.request(request)
+      parsed = JSON.parse(response.body)
+
+      data = parsed['data']
+      return data if data.is_a?(Array)
+
+      []
+    rescue *NETWORK_ERRORS => e
+      retries_left -= 1
+      return { error: "#{@provider_label} network error: #{e.class} - #{e.message}" } if retries_left.negative?
+
+      sleep(0.25 * (DEFAULT_RETRIES - retries_left))
+      retry
+    rescue JSON::ParserError => e
+      { error: "Invalid JSON response from #{@provider_label}: #{e.message}" }
+    end
   end
 end
