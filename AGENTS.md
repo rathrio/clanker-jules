@@ -15,5 +15,5 @@ This repository contains the source code for Jules, a terminal-based AI assistan
 ## Development Guidelines
 - Before implementing a new tool, always review the implementation of existing tools (e.g., `tools/edit_tool.rb`) to ensure consistency.
 - No external gem dependencies —  all API communication uses `net/http` from the standard library.
-- Use rubocop for linting and minitest for testing.
+- Use rubocop for linting and minitest for testing. Tests serve as documented examples. Avoid global test state and make sure that a test case in itself is readable and documents the whole flow. Avoid testing implementation details. Avoid mocking if you can.
 - ALWAYS run tests and linting after major changes (`bundle exec rake ci`).
