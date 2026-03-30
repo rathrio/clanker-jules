@@ -5,6 +5,7 @@ plugins:
 AllCops:
   NewCops: enable
   Exclude:
+    - 'bin/**/*'
     - 'vendor/**/*'
     - 'tmp/**/*'
     - 'db/schema.rb'

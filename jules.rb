@@ -21,7 +21,7 @@ options = {
 OptionParser.new do |opts|
   opts.banner = "Usage: #{File.basename($PROGRAM_NAME)} [options]"
 
-  opts.on('-p', '--provider PROVIDER', 'Provider: gemini or openrouter') do |provider|
+  opts.on('-p', '--provider PROVIDER', 'Provider: gemini, openrouter, or kiro') do |provider|
     options[:provider] = provider.downcase
   end
 
@@ -38,10 +38,12 @@ end.parse!
 PROVIDER = case options[:provider]
            when 'openrouter'
              OpenRouterProvider.new(model: options[:model])
+           when 'kiro'
+             OpenRouterProvider.new(model: options[:model], preset: :kiro)
            when 'gemini'
              GeminiProvider.new(model: options[:model])
            else
-             warn "Unknown provider '#{options[:provider]}'. Use 'gemini' or 'openrouter'."
+             warn "Unknown provider '#{options[:provider]}'. Use 'gemini', 'openrouter', or 'kiro'."
              exit 1
            end
 

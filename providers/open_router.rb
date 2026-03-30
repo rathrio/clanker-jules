@@ -8,17 +8,36 @@ require 'json'
 class OpenRouterProvider
   include Provider
 
-  # DEFAULT_MODEL = 'openai/gpt-4o'
-  DEFAULT_MODEL = 'openai/gpt-5.3-codex'
-  # DEFAULT_MODEL = 'anthropic/claude-3-haiku'
+  OPENROUTER_DEFAULTS = {
+    base_url: 'https://openrouter.ai/api/v1/chat/completions',
+    api_key_env: 'OPENROUTER_API_KEY',
+    default_model: 'openai/gpt-5.3-codex',
+    max_tokens: 4096
+  }.freeze
 
-  def initialize(model: nil)
-    api_key = ENV.fetch('OPENROUTER_API_KEY')
-    @model = model || DEFAULT_MODEL
-    @uri = URI.parse('https://openrouter.ai/api/v1/chat/completions')
+  KIRO_DEFAULTS = {
+    base_url: ENV.fetch('KIRO_BASE_URL', 'http://localhost:41929/v1/chat/completions'),
+    api_key_env: 'KIRO_API_KEY',
+    api_key_fallback: 'kiro-local-proxy',
+    default_model: 'claude-opus-4.6',
+    max_tokens: 128_000
+  }.freeze
+
+  def initialize(model: nil, preset: nil, base_url: nil, api_key: nil, max_tokens: nil)
+    defaults = preset == :kiro ? KIRO_DEFAULTS : OPENROUTER_DEFAULTS
+
+    @uri = URI.parse(base_url || defaults[:base_url])
+    @model = model || defaults[:default_model]
+    @max_tokens = max_tokens || defaults[:max_tokens]
+
+    resolved_key = api_key ||
+                   ENV[defaults[:api_key_env]] ||
+                   defaults[:api_key_fallback] ||
+                   (raise KeyError, "Missing API key: set #{defaults[:api_key_env]}")
+
     @headers = {
       'Content-Type' => 'application/json',
-      'Authorization' => "Bearer #{api_key}"
+      'Authorization' => "Bearer #{resolved_key}"
     }
   end
 
@@ -30,7 +49,7 @@ class OpenRouterProvider
 
   def generate_content(history, tools, system_prompt: nil)
     http = Net::HTTP.new(@uri.host, @uri.port)
-    http.use_ssl = true
+    http.use_ssl = @uri.scheme == 'https'
 
     messages = Message.format_history(history, format: :openai)
     messages.unshift({ role: 'system', content: system_prompt }) if system_prompt
@@ -38,7 +57,7 @@ class OpenRouterProvider
     request = Net::HTTP::Post.new(@uri.request_uri, @headers)
     request.body = {
       model: @model,
-      max_tokens: 4096,
+      max_tokens: @max_tokens,
       messages: messages,
       tools: tools
     }.to_json
