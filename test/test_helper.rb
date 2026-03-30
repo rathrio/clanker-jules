@@ -4,10 +4,9 @@ require 'minitest/autorun'
 require 'tmpdir'
 require 'fileutils'
 
-$LOAD_PATH.unshift(File.expand_path('..', __dir__))
+$LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
 
-require 'tool'
-require 'message'
+require 'jules'
 
 module Minitest
   class Test
@@ -24,7 +23,7 @@ module Minitest
         yield home
       ensure
         ENV['HOME'] = original_home
-        Skill.instance_variable_set(:@all, nil) if defined?(Skill)
+        Jules::Skill.instance_variable_set(:@all, nil) if defined?(Jules::Skill)
       end
     end
 

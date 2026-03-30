@@ -5,13 +5,13 @@ require_relative 'test_helper'
 class MessageTest < Minitest::Test
   def test_format_history_for_gemini_keeps_roles_and_parts
     history = [
-      Message.new('user', [{ text: 'Find ruby files' }]),
-      Message.new('model', [{ function_call: { name: 'glob', args: { 'pattern' => '**/*.rb' }, id: 'abc' } }]),
-      Message.new('tool', [{ function_response: { name: 'glob', result: "a.rb\nb.rb", id: 'abc' } }]),
-      Message.new('model', [{ text: 'Done.' }])
+      Jules::Message.new('user', [{ text: 'Find ruby files' }]),
+      Jules::Message.new('model', [{ function_call: { name: 'glob', args: { 'pattern' => '**/*.rb' }, id: 'abc' } }]),
+      Jules::Message.new('tool', [{ function_response: { name: 'glob', result: "a.rb\nb.rb", id: 'abc' } }]),
+      Jules::Message.new('model', [{ text: 'Done.' }])
     ]
 
-    result = Message.format_history(history, format: :gemini)
+    result = Jules::Message.format_history(history, format: :gemini)
 
     assert_equal 'user', result[0][:role]
     assert_equal 'Find ruby files', result[0][:parts][0][:text]
@@ -30,13 +30,13 @@ class MessageTest < Minitest::Test
 
   def test_format_history_for_openai_splits_tool_messages_correctly
     history = [
-      Message.new('user', [{ text: 'Run a tool' }]),
-      Message.new('model', [{ function_call: { name: 'read', args: { 'path' => 'x.txt' }, id: 'call_1' } }]),
-      Message.new('tool', [{ function_response: { name: 'read', result: 'content', id: 'call_1' } }]),
-      Message.new('model', [{ text: 'Here you go' }])
+      Jules::Message.new('user', [{ text: 'Run a tool' }]),
+      Jules::Message.new('model', [{ function_call: { name: 'read', args: { 'path' => 'x.txt' }, id: 'call_1' } }]),
+      Jules::Message.new('tool', [{ function_response: { name: 'read', result: 'content', id: 'call_1' } }]),
+      Jules::Message.new('model', [{ text: 'Here you go' }])
     ]
 
-    result = Message.format_history(history, format: :openai)
+    result = Jules::Message.format_history(history, format: :openai)
 
     assert_equal({ role: 'user', content: 'Run a tool' }, result[0])
 

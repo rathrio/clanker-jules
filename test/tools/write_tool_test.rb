@@ -7,7 +7,7 @@ class WriteToolTest < Minitest::Test
     Dir.mktmpdir do |dir|
       path = File.join(dir, 'output.txt')
 
-      result = WriteTool.new.call(
+      result = Jules::WriteTool.new.call(
         'path' => path,
         'content' => "hello\nworld\n"
       )
@@ -22,7 +22,7 @@ class WriteToolTest < Minitest::Test
       path = File.join(dir, 'output.txt')
       File.write(path, 'old content')
 
-      WriteTool.new.call(
+      Jules::WriteTool.new.call(
         'path' => path,
         'content' => 'new content'
       )

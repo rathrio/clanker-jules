@@ -4,13 +4,13 @@ require_relative '../test_helper'
 
 class PatchToolTest < Minitest::Test
   def test_returns_error_when_patch_is_empty
-    result = PatchTool.new.call('patch' => '   ')
+    result = Jules::PatchTool.new.call('patch' => '   ')
 
     assert_equal 'Error: patch cannot be empty.', result
   end
 
   def test_returns_error_when_path_does_not_exist
-    result = PatchTool.new.call(
+    result = Jules::PatchTool.new.call(
       'patch' => "--- a.txt\n+++ a.txt\n",
       'path' => '/tmp/definitely-missing-patch-path-123'
     )
@@ -26,7 +26,7 @@ class PatchToolTest < Minitest::Test
       :capture3,
       ->(*_args, **_kwargs) { ['checking file a.txt', '', fake_status] }
     ) do
-      PatchTool.new.call(
+      Jules::PatchTool.new.call(
         'patch' => "--- a.txt\n+++ a.txt\n@@ -1 +1 @@\n-old\n+new\n",
         'dry_run' => 'true'
       )
@@ -43,7 +43,7 @@ class PatchToolTest < Minitest::Test
       :capture3,
       ->(*_args, **_kwargs) { ['', 'malformed patch', fake_status] }
     ) do
-      PatchTool.new.call(
+      Jules::PatchTool.new.call(
         'patch' => "--- a.txt\n+++ a.txt\nbad",
         'dry_run' => 'false'
       )

@@ -16,7 +16,7 @@ class WebfetchToolTest < Minitest::Test
       :get_response,
       ->(_uri) { response }
     ) do
-      WebfetchTool.new.call('url' => 'https://example.com')
+      Jules::WebfetchTool.new.call('url' => 'https://example.com')
     end
 
     assert_equal '# Title', result
@@ -32,7 +32,7 @@ class WebfetchToolTest < Minitest::Test
       :get_response,
       ->(_uri) { response }
     ) do
-      WebfetchTool.new.call('url' => 'https://example.com/missing')
+      Jules::WebfetchTool.new.call('url' => 'https://example.com/missing')
     end
 
     assert_equal 'Error: Failed to fetch webpage. HTTP Status: 404', result
@@ -44,7 +44,7 @@ class WebfetchToolTest < Minitest::Test
       :get_response,
       ->(_uri) { raise StandardError, 'timeout' }
     ) do
-      WebfetchTool.new.call('url' => 'https://example.com')
+      Jules::WebfetchTool.new.call('url' => 'https://example.com')
     end
 
     assert_equal 'Error fetching webpage: timeout', result

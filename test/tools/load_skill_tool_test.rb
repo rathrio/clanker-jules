@@ -16,7 +16,7 @@ class LoadSkillToolTest < Minitest::Test
         Always preserve behavior.
       MARKDOWN
 
-      result = LoadSkillTool.new.call('name' => 'ruby_refactor')
+      result = Jules::LoadSkillTool.new.call('name' => 'ruby_refactor')
 
       assert_equal 'Always preserve behavior.', result
     end
@@ -24,7 +24,7 @@ class LoadSkillToolTest < Minitest::Test
 
   def test_returns_not_found_message_when_skill_does_not_exist
     with_temp_home do
-      result = LoadSkillTool.new.call('name' => 'missing_skill')
+      result = Jules::LoadSkillTool.new.call('name' => 'missing_skill')
 
       assert_equal 'Skill not found: missing_skill', result
     end

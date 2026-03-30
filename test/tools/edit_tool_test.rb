@@ -8,7 +8,7 @@ class EditToolTest < Minitest::Test
       path = File.join(dir, 'app.rb')
       File.write(path, "puts 'hello'\n")
 
-      tool = EditTool.new
+      tool = Jules::EditTool.new
       tool.define_singleton_method(:display_diff) { |_file_path, _old_content, _new_content| nil }
 
       result = tool.call(
@@ -23,7 +23,7 @@ class EditToolTest < Minitest::Test
   end
 
   def test_returns_error_when_file_does_not_exist
-    result = EditTool.new.call(
+    result = Jules::EditTool.new.call(
       'path' => '/tmp/does-not-exist.txt',
       'search' => 'a',
       'replace' => 'b'
@@ -37,7 +37,7 @@ class EditToolTest < Minitest::Test
       path = File.join(dir, 'app.rb')
       File.write(path, "puts 'hello'\n")
 
-      result = EditTool.new.call(
+      result = Jules::EditTool.new.call(
         'path' => path,
         'search' => "puts 'missing'",
         'replace' => "puts 'hi'"
@@ -52,7 +52,7 @@ class EditToolTest < Minitest::Test
       path = File.join(dir, 'app.rb')
       File.write(path, "foo\nfoo\n")
 
-      result = EditTool.new.call(
+      result = Jules::EditTool.new.call(
         'path' => path,
         'search' => 'foo',
         'replace' => 'bar'

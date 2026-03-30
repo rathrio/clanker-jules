@@ -5,14 +5,14 @@ require 'json'
 
 class MemoryToolTest < Minitest::Test
   def test_returns_error_for_empty_query
-    result = MemoryTool.new.call('query' => '  ')
+    result = Jules::MemoryTool.new.call('query' => '  ')
 
     assert_equal 'Query cannot be empty.', result
   end
 
   def test_returns_directory_missing_when_chat_store_does_not_exist
     with_temp_home do
-      result = MemoryTool.new.call('query' => 'deploy issue')
+      result = Jules::MemoryTool.new.call('query' => 'deploy issue')
 
       assert_equal 'Memory directory does not exist.', result
     end
@@ -31,7 +31,7 @@ class MemoryToolTest < Minitest::Test
       File.utime(Time.now - 60, Time.now - 60, older)
       File.utime(Time.now, Time.now, newer)
 
-      result = MemoryTool.new.call('query' => 'latest')
+      result = Jules::MemoryTool.new.call('query' => 'latest')
 
       assert_includes result, '[From newer.json]'
       assert_includes result, 'USER: new question'
@@ -50,7 +50,7 @@ class MemoryToolTest < Minitest::Test
       write_chat(deploy, 'Our deploy fails in production', 'Use rollback and clear cache')
       write_chat(unrelated, 'What is your favorite color?', 'Blue')
 
-      result = MemoryTool.new.call('query' => 'deploy production rollback')
+      result = Jules::MemoryTool.new.call('query' => 'deploy production rollback')
 
       assert_includes result, '[From deploy.json]'
       assert_includes result, 'USER: Our deploy fails in production'

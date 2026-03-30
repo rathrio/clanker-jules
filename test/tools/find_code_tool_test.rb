@@ -4,25 +4,25 @@ require_relative '../test_helper'
 
 class FindCodeToolTest < Minitest::Test
   def test_returns_error_when_neither_name_nor_pattern_provided
-    result = FindCodeTool.new.call({})
+    result = Jules::FindCodeTool.new.call({})
 
     assert_equal 'Error: provide either name or pattern.', result
   end
 
   def test_returns_error_when_pattern_is_blank
-    result = FindCodeTool.new.call('pattern' => '   ')
+    result = Jules::FindCodeTool.new.call('pattern' => '   ')
 
     assert_equal 'Error: provide either name or pattern.', result
   end
 
   def test_returns_error_when_name_used_without_lang
-    result = FindCodeTool.new.call('name' => 'foo')
+    result = Jules::FindCodeTool.new.call('name' => 'foo')
 
     assert_equal 'Error: lang is required when using name.', result
   end
 
   def test_returns_error_when_path_does_not_exist
-    result = FindCodeTool.new.call(
+    result = Jules::FindCodeTool.new.call(
       'pattern' => 'puts($A)',
       'path' => '/tmp/definitely-missing-find-code-path-123'
     )
@@ -32,7 +32,7 @@ class FindCodeToolTest < Minitest::Test
 
   def test_formats_successful_results_relative_to_base_path
     Dir.mktmpdir do |dir|
-      tool = FindCodeTool.new
+      tool = Jules::FindCodeTool.new
       payload_a = { 'file' => "#{dir}/lib/a.rb", 'range' => { 'start' => { 'line' => 3 } }, 'text' => 'puts :a' }
       payload_b = { 'file' => "#{dir}/lib/b.rb", 'range' => { 'start' => { 'line' => 7 } }, 'text' => 'puts :b' }
       fake_stdout = "#{JSON.generate(payload_a)}\n#{JSON.generate(payload_b)}\n"
@@ -55,7 +55,7 @@ class FindCodeToolTest < Minitest::Test
 
   def test_formats_meta_variables
     Dir.mktmpdir do |dir|
-      tool = FindCodeTool.new
+      tool = Jules::FindCodeTool.new
       payload = {
         'file' => "#{dir}/lib/a.rb",
         'range' => { 'start' => { 'line' => 1 } },
@@ -85,7 +85,7 @@ class FindCodeToolTest < Minitest::Test
 
   def test_truncates_long_matches
     Dir.mktmpdir do |dir|
-      tool = FindCodeTool.new
+      tool = Jules::FindCodeTool.new
       long_text = (1..15).map { |i| "  line_#{i}" }.join("\n")
       payload = {
         'file' => "#{dir}/lib/a.rb",
@@ -108,7 +108,7 @@ class FindCodeToolTest < Minitest::Test
   end
 
   def test_returns_no_matches_message_when_exitstatus_is_one
-    tool = FindCodeTool.new
+    tool = Jules::FindCodeTool.new
     fake_status = status(success: false, exitstatus: 1)
 
     result = with_stubbed_singleton_method(
@@ -123,7 +123,7 @@ class FindCodeToolTest < Minitest::Test
   end
 
   def test_returns_error_message_when_ast_grep_fails
-    tool = FindCodeTool.new
+    tool = Jules::FindCodeTool.new
     fake_status = status(success: false, exitstatus: 2)
 
     result = with_stubbed_singleton_method(
@@ -138,7 +138,7 @@ class FindCodeToolTest < Minitest::Test
   end
 
   def test_returns_helpful_message_when_ast_grep_is_missing
-    tool = FindCodeTool.new
+    tool = Jules::FindCodeTool.new
 
     result = with_stubbed_singleton_method(
       Open3,
@@ -155,7 +155,7 @@ class FindCodeToolTest < Minitest::Test
 
   def test_name_search_formats_results
     Dir.mktmpdir do |dir|
-      tool = FindCodeTool.new
+      tool = Jules::FindCodeTool.new
       payload = {
         'file' => "#{dir}/lib/a.rb",
         'range' => { 'start' => { 'line' => 1 } },
@@ -180,7 +180,7 @@ class FindCodeToolTest < Minitest::Test
   end
 
   def test_uses_globs_flag_for_excludes
-    tool = FindCodeTool.new
+    tool = Jules::FindCodeTool.new
     fake_status = status(success: true, exitstatus: 0)
     captured_command = nil
 

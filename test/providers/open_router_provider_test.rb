@@ -4,11 +4,11 @@ require_relative '../test_helper'
 require 'json'
 require 'timeout'
 require 'net/http'
-require 'provider'
+require 'jules'
 
 class OpenAICompatibleProviderTest < Minitest::Test
   def test_generate_content_returns_error_hash_on_network_timeout
-    provider = OpenAICompatibleProvider.new(preset: :kiro)
+    provider = Jules::OpenAICompatibleProvider.new(preset: :kiro)
 
     failing_http = Object.new
     failing_http.define_singleton_method(:use_ssl=) { |_value| nil }
@@ -24,7 +24,7 @@ class OpenAICompatibleProviderTest < Minitest::Test
   end
 
   def test_generate_content_retries_then_succeeds
-    provider = OpenAICompatibleProvider.new(preset: :kiro)
+    provider = Jules::OpenAICompatibleProvider.new(preset: :kiro)
 
     call_count = 0
     flaky_http = Object.new

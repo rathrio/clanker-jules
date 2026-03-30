@@ -1,30 +1,29 @@
 # frozen_string_literal: true
 
 require_relative 'test_helper'
-require_relative '../terminal'
 
 class TerminalTest < Minitest::Test
   def setup
-    Terminal::Markdown.remove_instance_variable(:@glow_available) if Terminal::Markdown.instance_variable_defined?(:@glow_available)
+    Jules::Terminal::Markdown.remove_instance_variable(:@glow_available) if Jules::Terminal::Markdown.instance_variable_defined?(:@glow_available)
   end
 
   def teardown
-    Terminal::Markdown.remove_instance_variable(:@glow_available) if Terminal::Markdown.instance_variable_defined?(:@glow_available)
+    Jules::Terminal::Markdown.remove_instance_variable(:@glow_available) if Jules::Terminal::Markdown.instance_variable_defined?(:@glow_available)
   end
 
   def test_spinner_label_returns_a_known_take_with_ellipsis
-    label = Terminal.spinner_label
+    label = Jules::Terminal.spinner_label
 
     assert label.end_with?('...')
 
     sampled_take = label.delete_suffix('...')
 
-    assert_includes Terminal::CYNICAL_SPINNER_TAKES, sampled_take
+    assert_includes Jules::Terminal::CYNICAL_SPINNER_TAKES, sampled_take
   end
 
   def test_render_markdown_raises_when_glow_missing
-    with_stubbed_singleton_method(Terminal::Markdown, :glow_available?, proc { false }) do
-      error = assert_raises(RuntimeError) { Terminal::Markdown.render('hello') }
+    with_stubbed_singleton_method(Jules::Terminal::Markdown, :glow_available?, proc { false }) do
+      error = assert_raises(RuntimeError) { Jules::Terminal::Markdown.render('hello') }
       assert_equal 'glow is required but was not found in PATH', error.message
     end
   end
@@ -32,9 +31,9 @@ class TerminalTest < Minitest::Test
   def test_render_markdown_raises_when_glow_command_fails
     failed_status = status(success: false, exitstatus: 7)
 
-    with_stubbed_singleton_method(Terminal::Markdown, :glow_available?, proc { true }) do
+    with_stubbed_singleton_method(Jules::Terminal::Markdown, :glow_available?, proc { true }) do
       with_stubbed_singleton_method(Open3, :capture3, proc { |_cmd, *_args, **_kwargs| ['', 'boom', failed_status] }) do
-        error = assert_raises(RuntimeError) { Terminal::Markdown.render('hello') }
+        error = assert_raises(RuntimeError) { Jules::Terminal::Markdown.render('hello') }
         assert_equal 'glow failed with exit status 7: boom', error.message
       end
     end
@@ -43,9 +42,9 @@ class TerminalTest < Minitest::Test
   def test_render_markdown_raises_when_output_is_only_whitespace
     success_status = status(success: true, exitstatus: 0)
 
-    with_stubbed_singleton_method(Terminal::Markdown, :glow_available?, proc { true }) do
+    with_stubbed_singleton_method(Jules::Terminal::Markdown, :glow_available?, proc { true }) do
       with_stubbed_singleton_method(Open3, :capture3, proc { |_cmd, *_args, **_kwargs| ["\n", '', success_status] }) do
-        error = assert_raises(RuntimeError) { Terminal::Markdown.render('hello') }
+        error = assert_raises(RuntimeError) { Jules::Terminal::Markdown.render('hello') }
         assert_equal 'glow returned empty output', error.message
       end
     end
@@ -55,12 +54,12 @@ class TerminalTest < Minitest::Test
     captured = nil
     success_status = status(success: true, exitstatus: 0)
 
-    with_stubbed_singleton_method(Terminal::Markdown, :glow_available?, proc { true }) do
+    with_stubbed_singleton_method(Jules::Terminal::Markdown, :glow_available?, proc { true }) do
       with_stubbed_singleton_method(Open3, :capture3, proc { |_cmd, *_args, **kwargs|
         captured = kwargs[:stdin_data]
         ['rendered', '', success_status]
       }) do
-        Terminal::Markdown.render('hello')
+        Jules::Terminal::Markdown.render('hello')
       end
     end
 
@@ -71,13 +70,13 @@ class TerminalTest < Minitest::Test
     success_status = status(success: true, exitstatus: 0)
     capture3_args = nil
 
-    with_stubbed_singleton_method(Terminal::Markdown, :glow_available?, proc { true }) do
-      with_stubbed_singleton_method(Terminal::Markdown, :terminal_width, proc { 123 }) do
+    with_stubbed_singleton_method(Jules::Terminal::Markdown, :glow_available?, proc { true }) do
+      with_stubbed_singleton_method(Jules::Terminal::Markdown, :terminal_width, proc { 123 }) do
         with_stubbed_singleton_method(Open3, :capture3, proc { |_cmd, *args, **_kwargs|
           capture3_args = args
           ['rendered', '', success_status]
         }) do
-          Terminal::Markdown.render('hello')
+          Jules::Terminal::Markdown.render('hello')
         end
       end
     end
@@ -89,7 +88,7 @@ class TerminalTest < Minitest::Test
     stub_console = Struct.new(:winsize).new([24, 200])
 
     with_stubbed_singleton_method(IO, :console, proc { stub_console }) do
-      assert_equal 140, Terminal::Markdown.terminal_width
+      assert_equal 140, Jules::Terminal::Markdown.terminal_width
     end
   end
 
@@ -97,7 +96,7 @@ class TerminalTest < Minitest::Test
     stub_console = Struct.new(:winsize).new([24, 120])
 
     with_stubbed_singleton_method(IO, :console, proc { stub_console }) do
-      assert_equal 120, Terminal::Markdown.terminal_width
+      assert_equal 120, Jules::Terminal::Markdown.terminal_width
     end
   end
 
@@ -105,7 +104,7 @@ class TerminalTest < Minitest::Test
     stub_console = Struct.new(:winsize).new([24, 0])
 
     with_stubbed_singleton_method(IO, :console, proc { stub_console }) do
-      assert_equal 80, Terminal::Markdown.terminal_width
+      assert_equal 80, Jules::Terminal::Markdown.terminal_width
     end
   end
 end

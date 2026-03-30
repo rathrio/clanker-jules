@@ -6,7 +6,7 @@ commands, and edit your workspace from chat.
 
 I primarily wrote this for myself for pedagogical reasons to demystify coding
 agents. No LLM gems are used here - just the Ruby standard library against
-inference endpoints. I started out by implementing the core loop (in `jules.rb`)
+inference endpoints. I started out by implementing the core loop (in `bin/jules`)
 by hand against the Gemini API. The only tools I wrote by hand are `WriteTool`,
 `ReadTool` and `BashTool`. From that point on I let `jules` edit itself to get
 to where it is now.
@@ -52,15 +52,15 @@ Optional:
 From the repo root:
 
 ```bash
-chmod +x jules.rb
-ln -sf "$(pwd)/jules.rb" /usr/local/bin/jules
+chmod +x bin/jules
+ln -sf "$(pwd)/bin/jules" /usr/local/bin/jules
 ```
 
 If you prefer a user-local location:
 
 ```bash
 mkdir -p "$HOME/.local/bin"
-ln -sf "$(pwd)/jules.rb" "$HOME/.local/bin/jules"
+ln -sf "$(pwd)/bin/jules" "$HOME/.local/bin/jules"
 ```
 
 Then ensure `~/.local/bin` is in your shell PATH (for `zsh`, add to `~/.zshrc`):
