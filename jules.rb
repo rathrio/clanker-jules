@@ -51,84 +51,81 @@ Terminal.print_provider(PROVIDER.provider_label, PROVIDER.model)
 # --- Main Application ---
 messages = []
 session_started_at = nil
-has_unsent_tool_results = false
 skills = Skill.all
 
 loop do
-  unless has_unsent_tool_results
-    input = Terminal.read_input
+  input = Terminal.read_input
+  next if input.empty?
+
+  case Terminal.parse_slash_command(input)
+  when :clear
+    messages.clear
+    session_started_at = nil
+    Terminal.print_info('Conversation cleared.')
+    next
+  when :multi
+    input = Terminal.read_multiline
     next if input.empty?
-
-    case Terminal.parse_slash_command(input)
-    when :clear
-      messages.clear
-      session_started_at = nil
-      Terminal.print_info('Conversation cleared.')
-      next
-    when :multi
-      input = Terminal.read_multiline
-      next if input.empty?
-    end
-
-    session_started_at ||= Time.now.strftime('%Y-%m-%dT%H%M%S%Z')
-    messages << Message.new('user', [{ text: input }])
   end
 
-  if session_started_at
-    log_file = File.join(CHATS_DIR, "#{session_started_at}.json")
-    File.write(log_file, Message.format_history(messages, format: :gemini).to_json)
-  end
+  session_started_at ||= Time.now.strftime('%Y-%m-%dT%H%M%S%Z')
+  messages << Message.new('user', [{ text: input }])
 
-  system_prompt_path = File.expand_path('~/.jules/SYSTEM.md')
-  system_prompt = if File.exist?(system_prompt_path)
-                    File.read(system_prompt_path)
-                  else
-                    'You are Jules, a straight and to-the-point general-purpose terminal assistant.'
-                  end
-  system_prompt += "\n\nAdditional instructions from AGENTS.md:\n#{File.read('AGENTS.md')}" if File.exist?('AGENTS.md')
-
-  unless skills.empty?
-    system_prompt += "\n\nThe following skills are available:\n"
-    skills.each_value do |skill|
-      system_prompt += "<skill><name>#{skill.name}</name><description>#{skill.description}</description></skill>\n"
+  loop do
+    if session_started_at
+      log_file = File.join(CHATS_DIR, "#{session_started_at}.json")
+      File.write(log_file, Message.format_history(messages, format: :gemini).to_json)
     end
-  end
 
-  tools = Tool.declarations(format: PROVIDER.tool_format)
+    system_prompt_path = File.expand_path('~/.jules/SYSTEM.md')
+    system_prompt = if File.exist?(system_prompt_path)
+                      File.read(system_prompt_path)
+                    else
+                      'You are Jules, a straight and to-the-point general-purpose terminal assistant.'
+                    end
+    system_prompt += "\n\nAdditional instructions from AGENTS.md:\n#{File.read('AGENTS.md')}" if File.exist?('AGENTS.md')
 
-  response = Terminal.with_spinner do
-    PROVIDER.generate_content(messages, tools, system_prompt: system_prompt)
-  end
-
-  parsed_response = PROVIDER.parse_response(response)
-
-  extra_parts = parsed_response[:extra_parts] || []
-
-  case parsed_response[:type]
-  when :message
-    messages << Message.new('model', extra_parts + [{ text: parsed_response[:data] }])
-    Terminal.print_assistant(parsed_response[:data])
-    has_unsent_tool_results = false
-  when :tool_calls
-    model_parts = extra_parts + parsed_response[:data].map do |call|
-      { function_call: { name: call[:name], args: call[:args], id: call[:id] } }
+    unless skills.empty?
+      system_prompt += "\n\nThe following skills are available:\n"
+      skills.each_value do |skill|
+        system_prompt += "<skill><name>#{skill.name}</name><description>#{skill.description}</description></skill>\n"
+      end
     end
-    messages << Message.new('model', model_parts)
 
-    tool_results = parsed_response[:data].map do |call|
-      tool_class = Tool.find(call[:name])
-      Terminal.print_tool_execution(tool_class.render_execution(call[:args]))
-      result = Tool.call(call[:name], call[:args])
-      Terminal.print_tool_preview(call[:name], result)
-      { function_response: { name: call[:name], result: result, id: call[:id] } }
+    tools = Tool.declarations(format: PROVIDER.tool_format)
+
+    response = Terminal.with_spinner do
+      PROVIDER.generate_content(messages, tools, system_prompt: system_prompt)
     end
-    messages << Message.new('tool', tool_results)
-    has_unsent_tool_results = true
-  when :error
-    Terminal.print_error(parsed_response[:data], raw: response.inspect)
-    has_unsent_tool_results = false
+
+    parsed_response = PROVIDER.parse_response(response)
+
+    extra_parts = parsed_response[:extra_parts] || []
+
+    case parsed_response[:type]
+    when :message
+      messages << Message.new('model', extra_parts + [{ text: parsed_response[:data] }])
+      Terminal.print_assistant(parsed_response[:data])
+      break
+    when :tool_calls
+      model_parts = extra_parts + parsed_response[:data].map do |call|
+        { function_call: { name: call[:name], args: call[:args], id: call[:id] } }
+      end
+      messages << Message.new('model', model_parts)
+
+      tool_results = parsed_response[:data].map do |call|
+        tool_class = Tool.find(call[:name])
+        Terminal.print_tool_execution(tool_class.render_execution(call[:args]))
+        result = Tool.call(call[:name], call[:args])
+        Terminal.print_tool_preview(call[:name], result)
+        { function_response: { name: call[:name], result: result, id: call[:id] } }
+      end
+      messages << Message.new('tool', tool_results)
+    when :error
+      Terminal.print_error(parsed_response[:data], raw: response.inspect)
+      break
+    end
   end
 rescue Interrupt
   puts "\n^C"
-  has_unsent_tool_results = false
 end
