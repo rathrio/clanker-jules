@@ -4,7 +4,15 @@ class EditTool
   include Tool
 
   def self.description
-    'Edit a file by replacing a string. Provides a diff of the change.'
+    <<~DESC.chomp
+      Make a targeted edit to a file by replacing one unique string with another. Shows a diff of the change.
+
+      Use this tool when you:
+      - Need to change a specific, small part of a file (rename a variable, fix a line, update a value)
+      - The search string must appear exactly once in the file — include enough surrounding context to be unique
+
+      Use patch instead for multi-hunk changes across a file. Use write for creating new files or full rewrites.
+    DESC
   end
 
   def self.render_execution(args)

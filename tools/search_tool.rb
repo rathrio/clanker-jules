@@ -10,7 +10,18 @@ class SearchTool
   DEFAULT_EXCLUDES = %w[.git node_modules .svn .hg].freeze
 
   def self.description
-    'Search for text across files, returning matches as file:line:content.'
+    <<~DESC.chomp
+      Search for exact text or patterns across files. Returns matching lines as file:line:content.
+
+      Use this tool when you:
+      - Know the exact string you're looking for (a variable name, error message, string literal)
+      - Want to find all usages of a specific identifier: search for "current_user"
+      - Need regex matching: use_regex=true with "def (create|update)"
+      - Want to search within specific file types: include_glob="**/*.rb"
+
+      Use find_code instead when you need structural matching (e.g. "find all method definitions" or \
+      "find calls to foo with two arguments") — search matches raw text, find_code understands code structure.
+    DESC
   end
 
   def self.render_execution(args)

@@ -4,7 +4,15 @@ class WriteTool
   include Tool
 
   def self.description
-    'Write content to a file at the given path. Creates the file if it does not exist, or overwrites it if it does.'
+    <<~DESC.chomp
+      Create a new file or completely overwrite an existing one.
+
+      Use this tool when you:
+      - Are creating a brand new file
+      - Need to rewrite a file entirely (the whole content changes)
+
+      Use edit for small, targeted changes. Use patch for applying diffs to existing files.
+    DESC
   end
 
   def self.render_execution(args)

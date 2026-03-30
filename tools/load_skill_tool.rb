@@ -6,7 +6,13 @@ class LoadSkillTool
   include Tool
 
   def self.description
-    'Load a skill by name. The skill content will be returned to you.'
+    <<~DESC.chomp
+      Load a skill (a reusable prompt/workflow) by name.
+
+      Use this tool when:
+      - The user asks you to run a skill or you need a specialized workflow
+      - You've been told a skill exists for a particular task
+    DESC
   end
 
   def self.render_execution(args)

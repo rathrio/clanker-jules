@@ -6,7 +6,14 @@ class MemoryTool
   include Tool
 
   def self.description
-    'Searches past conversations for a specific topic and returns the most relevant exchange(s). Use this when the user refers to something not in the current active chat.'
+    <<~DESC.chomp
+      Search past conversations for a topic. Returns the most relevant user/model exchange.
+
+      Use this tool when you:
+      - The user references something discussed in a previous conversation ("remember when we...", "like last time")
+      - Need context about a decision or approach from an earlier session
+      - The user asks what was discussed before about a topic
+    DESC
   end
 
   def self.render_execution(args)

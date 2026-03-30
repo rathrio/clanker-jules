@@ -13,7 +13,7 @@ require_relative 'provider'
 
 # --- Configuration ---
 options = {
-  provider: ENV.fetch('JULES_PROVIDER', 'gemini').downcase,
+  provider: ENV.fetch('JULES_PROVIDER', 'openrouter').downcase,
   model: ENV.fetch('JULES_MODEL', nil),
   list_models: false
 }

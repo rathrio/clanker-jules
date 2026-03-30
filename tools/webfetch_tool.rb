@@ -4,7 +4,14 @@ class WebfetchTool
   include Tool
 
   def self.description
-    'Fetch the contents of a webpage and return it as clean Markdown'
+    <<~DESC.chomp
+      Fetch a webpage and return its contents as clean Markdown.
+
+      Use this tool when you:
+      - Need to read documentation, API references, or guides from a URL
+      - The user shares a link and wants you to read or summarize it
+      - Need to check external resources (changelogs, issue pages, Stack Overflow answers)
+    DESC
   end
 
   def self.render_execution(args)

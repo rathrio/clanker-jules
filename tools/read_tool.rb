@@ -4,7 +4,14 @@ class ReadTool
   include Tool
 
   def self.description
-    'Read the contents of a file at the given path. Can optionally read a specific range of lines.'
+    <<~DESC.chomp
+      Read the contents of a file. Use start_line/end_line to read a specific range of a large file.
+
+      Use this tool when you:
+      - Need to understand existing code before modifying it
+      - Want to see the full context around a search/find_code result
+      - Need to verify file contents before writing or editing
+    DESC
   end
 
   def self.render_execution(args)

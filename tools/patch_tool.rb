@@ -7,7 +7,16 @@ class PatchTool
   include Tool
 
   def self.description
-    'Apply a unified diff patch to files using the system patch command. Supports dry-run mode.'
+    <<~DESC.chomp
+      Apply a unified diff (patch) to one or more files. Supports dry-run to validate before applying.
+
+      Use this tool when you:
+      - Need to make multiple changes to a file in one operation
+      - Have changes across several files to apply at once
+      - Want to preview changes with dry_run=true before committing them
+
+      Use edit for single, targeted replacements. Use write for creating new files.
+    DESC
   end
 
   def self.render_execution(args)

@@ -8,7 +8,16 @@ class GlobTool
   include Rg
 
   def self.description
-    'Find files by glob pattern (for example: **/*.rb or **/*_test.rb).'
+    <<~DESC.chomp
+      Find files by name or path pattern. Returns a list of matching file paths.
+
+      Use this tool when you:
+      - Need to discover what files exist: **/*.rb, **/*_test.rb, **/Gemfile
+      - Want to understand project structure: src/**/*.ts
+      - Are looking for a file by partial name: **/*controller*
+
+      Use search or find_code instead when you need to look inside file contents.
+    DESC
   end
 
   def self.render_execution(args)
