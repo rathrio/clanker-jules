@@ -18,15 +18,20 @@ options = {
   list_models: false
 }
 
+provider_set_by_cli = false
+model_set_by_cli = false
+
 OptionParser.new do |opts|
   opts.banner = "Usage: #{File.basename($PROGRAM_NAME)} [options]"
 
   opts.on('-p', '--provider PROVIDER', "Provider: #{Provider.all_names.join(', ')}") do |provider|
     options[:provider] = provider.downcase
+    provider_set_by_cli = true
   end
 
   opts.on('-m', '--model MODEL', 'Model name for the selected provider') do |model|
     options[:model] = model
+    model_set_by_cli = true
   end
 
   opts.on('-l', '--list-models', 'List models for the selected provider and exit') do
@@ -38,6 +43,10 @@ OptionParser.new do |opts|
     exit
   end
 end.parse!
+
+# If the provider is explicitly changed on the CLI but no explicit model is set,
+# fall back to that provider's default model instead of reusing JULES_MODEL.
+options[:model] = nil if provider_set_by_cli && !model_set_by_cli
 
 begin
   PROVIDER = Provider.build(options[:provider], model: options[:model])
