@@ -9,8 +9,8 @@ require_relative 'message'
 require_relative 'tool'
 require_relative 'skill'
 require_relative 'terminal'
-require_relative 'providers/gemini'
-require_relative 'providers/open_router'
+require_relative 'providers/gemini_provider'
+require_relative 'providers/open_router_provider'
 
 # --- Configuration ---
 options = {

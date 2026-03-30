@@ -8,8 +8,8 @@ This repository contains the source code for Jules, a terminal-based AI assistan
 - `skill.rb`: Defines the skill loading code.
 - `providers/`: Provider implementations. Each provider handles API communication and response parsing.
   - `provider.rb`: Shared interface module included by all providers.
-  - `gemini.rb`: Google Gemini API provider (direct HTTP, no external dependencies).
-  - `open_router.rb`: OpenRouter provider (OpenAI-compatible API, access to many models).
+  - `gemini_provider.rb`: Google Gemini API provider (direct HTTP, no external dependencies).
+  - `open_router_provider.rb`: OpenRouter provider (OpenAI-compatible API, access to many models).
 - `AGENTS.md`: This file, providing repository-specific context to Jules.
 
 ## Development Guidelines

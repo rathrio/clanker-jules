@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'rg_helper'
+require_relative 'rg'
 
 class GlobTool
   include Tool
