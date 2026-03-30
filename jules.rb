@@ -85,7 +85,12 @@ loop do
     File.write(log_file, Message.format_history(messages, format: :gemini).to_json)
   end
 
-  system_prompt = 'You are Jules, a straight and to-the-point general-purpose terminal assistant.'
+  system_prompt_path = File.expand_path('~/.jules/SYSTEM.md')
+  system_prompt = if File.exist?(system_prompt_path)
+                    File.read(system_prompt_path)
+                  else
+                    'You are Jules, a straight and to-the-point general-purpose terminal assistant.'
+                  end
   system_prompt += "\n\nAdditional instructions from AGENTS.md:\n#{File.read('AGENTS.md')}" if File.exist?('AGENTS.md')
 
   unless skills.empty?
