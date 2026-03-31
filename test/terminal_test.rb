@@ -104,4 +104,26 @@ class TerminalTest < Minitest::Test
 
     assert_includes output, '(send: ctrl+s / alt+enter, exit: ctrl+d)'
   end
+
+  def test_show_submit_hint_is_true_before_first_hint_is_shown
+    Jules::Terminal.submit_hint_shown = false
+
+    assert_predicate Jules::Terminal, :show_submit_hint?
+  end
+
+  def test_show_submit_hint_is_true_randomly_after_first_hint
+    Jules::Terminal.submit_hint_shown = true
+
+    with_stubbed_singleton_method(Kernel, :rand, proc { 0.1 }) do
+      assert_predicate Jules::Terminal, :show_submit_hint?
+    end
+  end
+
+  def test_show_submit_hint_can_be_false_after_first_hint
+    Jules::Terminal.submit_hint_shown = true
+
+    with_stubbed_singleton_method(Kernel, :rand, proc { 0.9 }) do
+      refute_predicate Jules::Terminal, :show_submit_hint?
+    end
+  end
 end

@@ -189,15 +189,19 @@ module Jules
       puts "#{color}#{BOLD}#{SCREENPLAY_INDENT}#{name}#{RESET}"
     end
 
+    SUBMIT_HINT_REPEAT_CHANCE = 0.2
+
     @submit_hint_shown = false
 
     class << self
       attr_accessor :submit_hint_shown
     end
 
-    def print_submit_hint
-      return if Terminal.submit_hint_shown
+    def show_submit_hint?
+      !Terminal.submit_hint_shown || Kernel.rand < SUBMIT_HINT_REPEAT_CHANCE
+    end
 
+    def print_submit_hint
       Terminal.submit_hint_shown = true
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}(send: ctrl+s / alt+enter, exit: ctrl+d)#{RESET}"
     end
@@ -260,10 +264,10 @@ module Jules
 
     def read_input
       screenplay_heading('YOU')
-      if Terminal.submit_hint_shown
-        print_action_beat(YOU_ACTION_BEATS)
-      else
+      if show_submit_hint?
         print_submit_hint
+      else
+        print_action_beat(YOU_ACTION_BEATS)
       end
       puts
 
