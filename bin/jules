@@ -80,12 +80,18 @@ if options[:list_models]
   end
 end
 
-Jules::Terminal.print_opening_scene(PROVIDER.provider_label, PROVIDER.model)
+skills = Jules::Skill.all
+tools = Jules::Tool.declarations(format: PROVIDER.tool_format)
+
+Jules::Terminal.print_opening_scene(
+  PROVIDER.provider_label, PROVIDER.model,
+  tool_count: tools.size,
+  skill_names: skills.keys
+)
 
 # --- Main Application ---
 messages = []
 session_started_at = nil
-skills = Jules::Skill.all
 
 system_prompt_path = File.expand_path('~/.jules/SYSTEM.md')
 system_prompt = if File.exist?(system_prompt_path)
@@ -101,8 +107,6 @@ unless skills.empty?
   end
   system_prompt += "\n\nThe following skills are available:\n#{skill_definitions.join("\n")}"
 end
-
-tools = Jules::Tool.declarations(format: PROVIDER.tool_format)
 
 flush_chat_log = lambda do
   next unless session_started_at && !messages.empty?
@@ -125,7 +129,7 @@ loop do
   when :clear
     messages.clear
     session_started_at = nil
-    Jules::Terminal.print_info('Conversation cleared.')
+    Jules::Terminal.print_scene_cut
     next
   when :multi
     input = Jules::Terminal.read_multiline
@@ -169,5 +173,5 @@ loop do
     end
   end
 rescue Interrupt
-  puts "\n^C"
+  Jules::Terminal.print_interrupt
 end

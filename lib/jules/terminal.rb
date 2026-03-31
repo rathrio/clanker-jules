@@ -7,6 +7,22 @@ require 'open3'
 module Jules
   module Terminal
     CYNICAL_SPINNER_TAKES = [
+      'following a lead that probably goes nowhere',
+      'shaking down the database',
+      'tailing a suspect',
+      'reading between the lies',
+      'connecting dots that don\'t want to be connected',
+      'working the angle',
+      'following the money',
+      'piecing together the alibi',
+      'canvassing the codebase',
+      'checking who had motive and access',
+      'staking out the endpoint',
+      'pulling the thread',
+      'leaning on a witness',
+      'dusting for prints',
+      'shaking the tree to see what falls',
+      'asking questions nobody wants answered',
       'doing more with less',
       'hallucinating with confidence',
       'laundering scraped text into answers',
@@ -108,6 +124,37 @@ module Jules
       'laundering complexity into false simplicity'
     ].freeze
 
+    YOU_ACTION_BEATS = [
+      'lights a cigarette',
+      'leans into the light',
+      'slides the envelope across the table',
+      'checks the exits',
+      'loosens the collar',
+      'drums fingers on the desk',
+      'stares at the ceiling',
+      'exhales slowly',
+      'pours two fingers of rye',
+      'squints through the smoke',
+      'glances over one shoulder',
+      'sets down the glass'
+    ].freeze
+
+    JULES_ACTION_BEATS = [
+      'lights a cigarette',
+      'adjusts the fedora',
+      'stares into the middle distance',
+      'takes a long drag',
+      'leans back in the chair',
+      'gazes at the rain-slicked glass',
+      'taps ash into the tray',
+      'studies the ceiling fan',
+      'straightens the tie',
+      'runs a hand over the stubble',
+      'pours another glass',
+      'watches the door',
+      'cracks the knuckles'
+    ].freeze
+
     PINK    = "\e[38;2;255;121;198m"
     PURPLE  = "\e[38;2;189;147;249m"
     CYAN    = "\e[38;2;139;233;253m"
@@ -119,14 +166,21 @@ module Jules
     RESET   = "\e[0m"
     BOLD    = "\e[1m"
 
-    SCREENPLAY_INDENT = ' ' * 16
-    DIALOGUE_INDENT = '  '
+    SCREENPLAY_INDENT    = ' ' * 16
+    PARENTHETICAL_INDENT = ' ' * 10
+    DIALOGUE_INDENT      = '  '
 
     module_function
 
     def spinner_label
-      take = rand < 0.8 ? 'clanking' : CYNICAL_SPINNER_TAKES.sample
+      take = rand < 0.6 ? 'clanking' : CYNICAL_SPINNER_TAKES.sample
       "Jules is #{take}."
+    end
+
+    def print_action_beat(beats)
+      return unless rand < 0.3
+
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{beats.sample})#{RESET}"
     end
 
     def screenplay_heading(name, color: PINK)
@@ -140,9 +194,13 @@ module Jules
 
     def read_input
       screenplay_heading('YOU')
+      print_action_beat(YOU_ACTION_BEATS)
       puts
       input = Reline.readline(DIALOGUE_INDENT, true)
-      exit if input.nil?
+      if input.nil?
+        print_fade_out
+        exit
+      end
 
       input.strip
     end
@@ -168,18 +226,51 @@ module Jules
       end
     end
 
-    def print_opening_scene(provider_label, model)
+    def print_opening_scene(provider_label, model, tool_count:, skill_names: [])
       puts "#{COMMENT}FADE IN:#{RESET}"
       puts
       puts "#{COMMENT}INT. TERMINAL - NIGHT#{RESET}"
       puts
       puts "#{COMMENT}A cursor blinks in the void. JULES steps out of the darkness,"
-      puts "wearing #{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT} like a rented suit.#{RESET}"
+      puts "wearing #{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT} like a rented suit."
+      loadout = "#{tool_count} tools on the hip."
+      loadout += if skill_names.empty?
+                   ' No skills — just instinct.'
+                 else
+                   " #{skill_names.size} #{skill_names.size == 1 ? 'skill' : 'skills'} up the sleeve: #{skill_names.join(', ')}."
+                 end
+      puts "#{loadout}#{RESET}"
+      puts
+      puts "#{COMMENT}(The phone rings. It's always YOU.)#{RESET}"
     end
 
     def print_assistant(text)
       screenplay_heading('JULES', color: PURPLE)
+      print_action_beat(JULES_ACTION_BEATS)
       puts render_markdown(text)
+    end
+
+    def print_scene_cut
+      puts
+      puts "#{COMMENT}SMASH CUT TO:#{RESET}"
+      puts
+      puts "#{COMMENT}INT. TERMINAL - STILL NIGHT#{RESET}"
+      puts
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(The slate is clean. The angles are fresh.)#{RESET}"
+      puts
+    end
+
+    def print_interrupt
+      puts
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(Jules stubs out the cigarette. Waits.)#{RESET}"
+    end
+
+    def print_fade_out
+      puts
+      puts "#{COMMENT}FADE TO BLACK.#{RESET}"
+      puts
+      puts "#{COMMENT}#{SCREENPLAY_INDENT}THE END#{RESET}"
+      puts
     end
 
     def render_markdown(text)
@@ -241,9 +332,9 @@ module Jules
       color = TOOL_LABEL_COLORS[label] || COMMENT
 
       if rest
-        puts "#{color}#{BOLD}#{label}:#{RESET} #{COMMENT}#{rest}#{RESET}"
+        puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{color}#{BOLD}#{label}#{RESET}#{COMMENT} \u2014 #{rest})#{RESET}"
       else
-        puts "#{COMMENT}#{text}#{RESET}"
+        puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{text})#{RESET}"
       end
       puts
     end
@@ -253,8 +344,8 @@ module Jules
 
       lines = result.to_s.lines
       preview = lines.count > 6 ? lines[0..4] : lines
-      preview.each { |line| puts "#{COMMENT}#{line.chomp}" }
-      puts "#{COMMENT}(#{lines.count - 5} more lines)" if lines.count > 6
+      preview.each { |line| puts "#{COMMENT}#{PARENTHETICAL_INDENT} #{line.chomp}#{RESET}" }
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT} \u2026 #{lines.count - 5} more lines#{RESET}" if lines.count > 6
       puts
     end
 
