@@ -61,6 +61,7 @@ module Jules
         'patch',
         "-p#{strip}",
         '--forward',
+        '--batch',
         '--reject-file=-'
       ]
       command << '--dry-run' if dry_run

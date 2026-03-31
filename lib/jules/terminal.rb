@@ -186,7 +186,7 @@ module Jules
 
     # Markdown rendering via glow
     module Markdown
-      MAX_RENDER_WIDTH = 140
+      MAX_RENDER_WIDTH = 100
       GLOW_ENV = { 'CLICOLOR_FORCE' => '1', 'COLORTERM' => 'truecolor', 'TERM' => 'xterm-256color' }.freeze
 
       module_function

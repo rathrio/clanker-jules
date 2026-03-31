@@ -88,7 +88,7 @@ class TerminalTest < Minitest::Test
     stub_console = Struct.new(:winsize).new([24, 200])
 
     with_stubbed_singleton_method(IO, :console, proc { stub_console }) do
-      assert_equal 140, Jules::Terminal::Markdown.terminal_width
+      assert_equal 100, Jules::Terminal::Markdown.terminal_width
     end
   end
 
@@ -96,7 +96,7 @@ class TerminalTest < Minitest::Test
     stub_console = Struct.new(:winsize).new([24, 120])
 
     with_stubbed_singleton_method(IO, :console, proc { stub_console }) do
-      assert_equal 120, Jules::Terminal::Markdown.terminal_width
+      assert_equal 100, Jules::Terminal::Markdown.terminal_width
     end
   end
 
