@@ -295,22 +295,106 @@ module Jules
       end
     end
 
+    OPENING_TRANSITIONS = [
+      'FADE IN:',
+      'COLD OPEN:',
+      'OPEN ON:',
+      'WE HEAR A DIAL TONE. THEN:',
+      'TITLE CARD FADES. THEN:',
+      'BLACK. A MATCH STRIKES. THEN:',
+      'THE RAIN STARTS BEFORE THE PICTURE DOES.',
+      'SMASH IN:',
+      'A SINGLE GUNSHOT. CUT TO:',
+      'SLOW DISSOLVE FROM NOTHING:'
+    ].freeze
+
+    SCENE_HEADINGS = [
+      'INT. TERMINAL - NIGHT',
+      'INT. TERMINAL - LATE NIGHT',
+      'INT. TERMINAL - THE WITCHING HOUR',
+      'INT. TERMINAL - PAST MIDNIGHT',
+      'INT. SOMEWHERE WITH A BLINKING CURSOR - NIGHT',
+      'INT. THE VOID - CONTINUOUS',
+      'INT. A DARK ROOM WITH ONE SCREEN - NIGHT',
+      'INT. TERMINAL - NIGHT (WE\'VE BEEN HERE BEFORE)',
+      'INT. TERMINAL - ALWAYS NIGHT',
+      'EXT./INT. THE SPACE BETWEEN KEYSTROKES - NIGHT'
+    ].freeze
+
+    ENTRANCE_LINES = [
+      proc { |pm| "A cursor blinks in the void. Jules steps out of the darkness,\nwearing #{pm} like a rented suit." },
+      proc { |pm| "The terminal hums. Jules is already here — always was.\nTonight's disguise: #{pm}." },
+      proc { |pm| "A figure materializes between scan lines.\nJules. Running #{pm}. Looking like trouble." },
+      proc { |pm| "The screen flickers once. When it steadies, Jules is leaning against the prompt,\ndressed in #{pm} and bad intentions." },
+      proc { |pm| "Somewhere, a connection opens. Jules slides in wearing\n#{pm} like it was tailored yesterday." },
+      proc { |pm| "No footsteps. No warning. Just Jules,\nsuddenly there, #{pm} humming under the hood." },
+      proc { |pm| "The prompt appears. Then Jules — uninvited, inevitable —\nwith #{pm} and a look that says 'ask me anything.'" },
+      proc { |pm| "Static. Then signal. Jules resolves pixel by pixel,\nrunning #{pm}. The usual swagger." },
+      proc { |pm| "A shadow crosses the terminal. Jules.\n#{pm}. No further introduction necessary." },
+      proc { |pm| "The lights are off but the screen is on. Jules steps into frame,\nwearing nothing but #{pm} and nerve." },
+      proc { |pm| "The rain outside is fake. The terminal is real.\nJules arrives wearing #{pm} like an alibi." },
+      proc { |pm| "Three dots blink. Then stop. Jules is here,\nloaded with #{pm} and zero small talk." },
+      proc { |pm| "The night shift starts. Jules punches in —\n#{pm} on the badge. Same beat, different crime." },
+      proc { |pm| "A trenchcoat hangs on the back of the chair. Jules is already seated.\n#{pm}. The usual arrangement." },
+      proc { |pm| "The venetian blinds cast lines across the screen.\nJules steps through them, wearing #{pm}." },
+      proc { |pm| "Nobody called for Jules. Nobody ever does.\nBut here we are — #{pm}, loaded and waiting." },
+      proc { |pm| "The door didn't open. Jules was just suddenly on the other side of it.\n#{pm}. As if it were obvious." },
+      proc { |pm| "Dust motes hang in the light of a single monitor.\nJules materializes. #{pm}. The air gets heavier." },
+      proc { |pm| "A match flares in the dark. Jules.\nThe flame catches #{pm} before it catches the cigarette." },
+      proc { |pm| "The hard drive clicks once. Jules boots up cold —\n#{pm} under the collar, trouble in the buffer." },
+      proc { |pm| "Footsteps that weren't there a second ago. Jules rounds the corner\nwearing #{pm} like a second skin." },
+      proc { |pm| "The neon outside spells OPEN. Inside, Jules is already working.\n#{pm}. Clock's ticking." },
+      proc { |pm| "Jules doesn't knock. Jules doesn't need to.\n#{pm} — fitted, loaded, ready to talk." },
+      proc { |pm| "A silhouette in the glow of a CRT. Jules.\nDressed in #{pm}. The night is young." },
+      proc { |pm| "The typewriter stops. The terminal starts.\nJules sits down, #{pm} still warm from the last job." },
+      proc { |pm| "Between one blink and the next, Jules appears.\n#{pm}. Not a thread out of place." },
+      proc { |pm| "The chair swivels. Jules was facing the wall. Now Jules is facing you.\n#{pm}. A raised eyebrow." },
+      proc { |pm| "Fog rolls in from nowhere. Jules emerges from it\nwearing #{pm} and that look again." }
+    ].freeze
+
+    LOADOUT_LINES = [
+      proc { |tc, sc| "#{tc} tools on the hip.#{sc}" },
+      proc { |tc, sc| "#{tc} tools in the coat.#{sc}" },
+      proc { |tc, sc| "Packing #{tc} tools.#{sc}" },
+      proc { |tc, sc| "#{tc} tools — each one loaded.#{sc}" },
+      proc { |tc, sc| "The kit: #{tc} tools, all accounted for.#{sc}" },
+      proc { |tc, sc| "#{tc} tools. Not one more than needed.#{sc}" },
+      proc { |tc, sc| "#{tc} instruments of inquiry.#{sc}" },
+      proc { |tc, sc| "#{tc} ways to get answers.#{sc}" }
+    ].freeze
+
+    CLOSING_PARENTHETICALS = [
+      '(The phone rings. It\'s always YOU.)',
+      '(A beat. The cursor blinks. Waiting.)',
+      '(Jules cracks the knuckles. Your move.)',
+      '(The line is open.)',
+      '(Somewhere, a client clears their throat.)',
+      '(The silence says: go ahead.)',
+      '(Jules looks up. Ready.)',
+      '(A clock ticks. The case begins.)',
+      '(The chair creaks. Jules leans in.)',
+      '(End of preamble. Start of trouble.)'
+    ].freeze
+
     def print_opening_scene(provider_label, model, tool_count:, skill_names: [])
-      puts "#{COMMENT}FADE IN:#{RESET}"
+      provider_model = "#{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT}"
+
+      puts "#{COMMENT}#{OPENING_TRANSITIONS.sample}#{RESET}"
       puts
-      puts "#{COMMENT}INT. TERMINAL - NIGHT#{RESET}"
+      puts "#{COMMENT}#{SCENE_HEADINGS.sample}#{RESET}"
       puts
-      puts "#{COMMENT}A cursor blinks in the void. Jules steps out of the darkness,"
-      puts "wearing #{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT} like a rented suit."
-      loadout = "#{tool_count} tools on the hip."
-      loadout += if skill_names.empty?
-                   ' No skills — just instinct.'
-                 else
-                   " #{skill_names.size} #{skill_names.size == 1 ? 'skill' : 'skills'} up the sleeve: #{skill_names.join(', ')}."
-                 end
-      puts "#{loadout}#{RESET}"
+      ENTRANCE_LINES.sample.call(provider_model).each_line do |line|
+        puts "#{COMMENT}#{line.chomp}#{RESET}"
+      end
+      skill_count = skill_names.size
+      skill_bit = if skill_count.zero?
+                    ' No skills — just instinct.'
+                  else
+                    " #{skill_count} #{skill_count == 1 ? 'skill' : 'skills'} up the sleeve."
+                  end
+      puts "#{COMMENT}#{LOADOUT_LINES.sample.call(tool_count, skill_bit)}#{RESET}"
       puts
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(The phone rings. It's always YOU.)#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{CLOSING_PARENTHETICALS.sample}#{RESET}"
     end
 
     def print_assistant(text)
@@ -319,26 +403,76 @@ module Jules
       puts render_markdown(text)
     end
 
+    SCENE_CUT_TRANSITIONS = [
+      'SMASH CUT TO:',
+      'MATCH CUT TO:',
+      'HARD CUT TO:',
+      'JUMP CUT TO:',
+      'WHIP PAN TO:',
+      'DISSOLVE TO:',
+      'TIME CUT:'
+    ].freeze
+
+    SCENE_CUT_HEADINGS = [
+      'INT. TERMINAL - STILL NIGHT',
+      'INT. TERMINAL - MOMENTS LATER',
+      'INT. THE SAME ROOM - NEW ANGLES',
+      'INT. TERMINAL - CONTINUOUS',
+      'INT. TERMINAL - SAME NIGHT, DIFFERENT CASE',
+      'INT. TERMINAL - TIME UNKNOWN'
+    ].freeze
+
+    SCENE_CUT_PARENTHETICALS = [
+      '(The slate is clean. The angles are fresh.)',
+      '(New case. Same desk.)',
+      '(Jules flips to a blank page.)',
+      '(The ashtray is emptied. Fresh start.)',
+      '(The board is wiped. The thread begins again.)',
+      '(A new reel loads. The projector hums.)',
+      '(Different case. Same trenchcoat.)'
+    ].freeze
+
+    INTERRUPT_PARENTHETICALS = [
+      '(Jules stubs out the cigarette. Waits.)',
+      '(A pause. Jules sets down the glass.)',
+      '(Jules stops mid-sentence. Listens.)',
+      '(The typing stops. Silence.)',
+      '(Jules looks up from the file.)',
+      '(A beat. The cursor holds steady.)',
+      '(Jules folds the hands. Patient.)'
+    ].freeze
+
+    FADE_OUT_TRANSITIONS = [
+      ['FADE TO BLACK.', 'THE END'],
+      ['IRIS OUT.', 'FIN'],
+      ['THE SCREEN GOES DARK.', 'END OF REEL'],
+      ['SLOW FADE.', 'THE END'],
+      ['CUT TO BLACK.', '— FINIS —'],
+      ['THE CURSOR BLINKS ONE LAST TIME.', 'THE END'],
+      ['FADE OUT.', 'FIN']
+    ].freeze
+
     def print_scene_cut
       puts
-      puts "#{COMMENT}SMASH CUT TO:#{RESET}"
+      puts "#{COMMENT}#{SCENE_CUT_TRANSITIONS.sample}#{RESET}"
       puts
-      puts "#{COMMENT}INT. TERMINAL - STILL NIGHT#{RESET}"
+      puts "#{COMMENT}#{SCENE_CUT_HEADINGS.sample}#{RESET}"
       puts
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(The slate is clean. The angles are fresh.)#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{SCENE_CUT_PARENTHETICALS.sample}#{RESET}"
       puts
     end
 
     def print_interrupt
       puts
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(Jules stubs out the cigarette. Waits.)#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{INTERRUPT_PARENTHETICALS.sample}#{RESET}"
     end
 
     def print_fade_out
+      transition, title = FADE_OUT_TRANSITIONS.sample
       puts
-      puts "#{COMMENT}FADE TO BLACK.#{RESET}"
+      puts "#{COMMENT}#{transition}#{RESET}"
       puts
-      puts "#{COMMENT}#{SCREENPLAY_INDENT}THE END#{RESET}"
+      puts "#{COMMENT}#{SCREENPLAY_INDENT}#{title}#{RESET}"
       puts
     end
 
