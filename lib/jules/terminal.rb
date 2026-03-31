@@ -120,29 +120,35 @@ module Jules
     RESET   = "\e[0m"
     BOLD    = "\e[1m"
 
+    SCREENPLAY_INDENT = ' ' * 16
+    DIALOGUE_INDENT = '  '
+
     module_function
 
     def spinner_label
       "#{CYNICAL_SPINNER_TAKES.sample}..."
     end
 
-    def user_prompt
-      "\x01#{PINK}#{BOLD}\x02you:\x01#{RESET}\x02 "
+    def screenplay_heading(name, color: PINK)
+      puts
+      puts "#{color}#{BOLD}#{SCREENPLAY_INDENT}#{name}#{RESET}"
     end
 
     def multi_prompt
-      "\x01#{GREEN}#{BOLD}\x02... \x01#{RESET}\x02"
+      "#{DIALOGUE_INDENT}\x01#{GREEN}#{BOLD}\x02... \x01#{RESET}\x02"
     end
 
     def read_input
-      input = Reline.readline(user_prompt, true)
+      screenplay_heading('YOU')
+      puts
+      input = Reline.readline(DIALOGUE_INDENT, true)
       exit if input.nil?
 
       input.strip
     end
 
     def read_multiline
-      print_info('Enter multiline message. Press Ctrl+D to submit.')
+      print_info("#{DIALOGUE_INDENT}Enter multiline message. Press Ctrl+D to submit.")
       lines = []
 
       loop do
@@ -162,12 +168,15 @@ module Jules
       end
     end
 
-    def print_provider(provider_label, model)
-      puts "#{COMMENT}Provider: #{provider_label} (#{model})#{RESET}"
+    def print_opening_scene(provider_label, model)
+      puts "#{COMMENT}FADE IN:#{RESET}"
+      puts
+      puts "#{COMMENT}A terminal flickers to life. JULES (#{provider_label}, #{model}) is online,"
+      puts "wired into your computer through local tools, and waiting for your next line.#{RESET}"
     end
 
     def print_assistant(text)
-      puts "#{PURPLE}#{BOLD}jules:#{RESET}"
+      screenplay_heading('JULES', color: PURPLE)
       puts render_markdown(text)
     end
 
@@ -249,7 +258,9 @@ module Jules
       puts "#{CYAN}#{text}#{RESET}"
     end
 
-    def with_spinner(label: spinner_label)
+    def with_spinner(label: spinner_label, leading_newline: false)
+      puts if leading_newline
+
       spinner_thread = Thread.new do
         spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
         i = 0

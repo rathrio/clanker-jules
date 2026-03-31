@@ -80,7 +80,7 @@ if options[:list_models]
   end
 end
 
-Jules::Terminal.print_provider(PROVIDER.provider_label, PROVIDER.model)
+Jules::Terminal.print_opening_scene(PROVIDER.provider_label, PROVIDER.model)
 
 # --- Main Application ---
 messages = []
@@ -136,7 +136,7 @@ loop do
   messages << Jules::Message.new('user', [{ text: input }])
 
   loop do
-    response = Jules::Terminal.with_spinner do
+    response = Jules::Terminal.with_spinner(leading_newline: true) do
       PROVIDER.generate_content(messages, tools, system_prompt: system_prompt)
     end
 
