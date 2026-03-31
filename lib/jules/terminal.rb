@@ -2,6 +2,7 @@
 
 require 'reline'
 require 'io/console'
+require 'io/wait'
 require 'open3'
 
 module Jules
@@ -188,41 +189,109 @@ module Jules
       puts "#{color}#{BOLD}#{SCREENPLAY_INDENT}#{name}#{RESET}"
     end
 
-    def multi_prompt
-      "#{DIALOGUE_INDENT}\x01#{GREEN}#{BOLD}\x02... \x01#{RESET}\x02"
+    @submit_hint_shown = false
+
+    class << self
+      attr_accessor :submit_hint_shown
+    end
+
+    def print_submit_hint
+      return if Terminal.submit_hint_shown
+
+      Terminal.submit_hint_shown = true
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(Ctrl+S or Alt+Enter to send. The line stays open till you say so.)#{RESET}"
+    end
+
+    # Wraps Reline's input IO to intercept Ctrl+S and Alt+Enter as submit signals.
+    class InputInterceptor
+      attr_reader :submit_requested
+
+      def initialize(input)
+        @input = input
+        @submit_requested = false
+        @pending_byte = nil
+      end
+
+      def reset_submit
+        @submit_requested = false
+      end
+
+      def getbyte
+        if @pending_byte
+          byte = @pending_byte
+          @pending_byte = nil
+          return byte
+        end
+
+        byte = @input.getbyte
+        return nil if byte.nil?
+
+        if byte == 0x13 # Ctrl+S
+          @submit_requested = true
+          return 0x0D
+        elsif byte == 0x1B && @input.wait_readable(0.05) # ESC — check for Alt+Enter
+          next_byte = @input.getbyte
+          if [0x0D, 0x0A].include?(next_byte)
+            @submit_requested = true
+            return 0x0D
+          else
+            @pending_byte = next_byte
+            return 0x1B
+          end
+        end
+
+        byte
+      end
+
+      def wait_readable(timeout = nil)
+        return true if @pending_byte
+
+        @input.wait_readable(timeout)
+      end
+
+      def method_missing(method, ...)
+        @input.send(method, ...)
+      end
+
+      def respond_to_missing?(method, include_private = false)
+        @input.respond_to?(method, include_private) || super
+      end
     end
 
     def read_input
       screenplay_heading('YOU')
-      print_action_beat(YOU_ACTION_BEATS)
+      if Terminal.submit_hint_shown
+        print_action_beat(YOU_ACTION_BEATS)
+      else
+        print_submit_hint
+      end
       puts
-      input = Reline.readline(DIALOGUE_INDENT, true)
+
+      interceptor = InputInterceptor.new($stdin)
+      Reline.input = interceptor
+
+      input = Reline.readmultiline(DIALOGUE_INDENT, true) do |_buf|
+        if interceptor.submit_requested
+          interceptor.reset_submit
+          true
+        else
+          false
+        end
+      end
+
       if input.nil?
         print_fade_out
         exit
       end
 
       input.strip
-    end
-
-    def read_multiline
-      print_info("#{DIALOGUE_INDENT}Enter multiline message. Press Ctrl+D to submit.")
-      lines = []
-
-      loop do
-        line = Reline.readline(multi_prompt, false)
-        break if line.nil?
-
-        lines << line
-      end
-
-      lines.join("\n").strip
+    ensure
+      Reline.input = $stdin
     end
 
     def parse_slash_command(input)
       case input
       when '/clear', '/new' then :clear
-      when '/multi' then :multi
       end
     end
 
@@ -241,7 +310,7 @@ module Jules
                  end
       puts "#{loadout}#{RESET}"
       puts
-      puts "#{COMMENT}(The phone rings. It's always YOU.)#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(The phone rings. It's always YOU.)#{RESET}"
     end
 
     def print_assistant(text)
