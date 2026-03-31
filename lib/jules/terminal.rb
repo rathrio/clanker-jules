@@ -199,7 +199,7 @@ module Jules
       return if Terminal.submit_hint_shown
 
       Terminal.submit_hint_shown = true
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(ctrl+s or alt+enter to send)#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(send: ctrl+s / alt+enter, exit: ctrl+d)#{RESET}"
     end
 
     # Wraps Reline's input IO to intercept Ctrl+S and Alt+Enter as submit signals.

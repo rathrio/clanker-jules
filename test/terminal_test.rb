@@ -4,10 +4,12 @@ require_relative 'test_helper'
 
 class TerminalTest < Minitest::Test
   def setup
+    Jules::Terminal.submit_hint_shown = false
     Jules::Terminal::Markdown.remove_instance_variable(:@glow_available) if Jules::Terminal::Markdown.instance_variable_defined?(:@glow_available)
   end
 
   def teardown
+    Jules::Terminal.submit_hint_shown = false
     Jules::Terminal::Markdown.remove_instance_variable(:@glow_available) if Jules::Terminal::Markdown.instance_variable_defined?(:@glow_available)
   end
 
@@ -95,5 +97,11 @@ class TerminalTest < Minitest::Test
     with_stubbed_singleton_method(IO, :console, proc { stub_console }) do
       assert_equal 80, Jules::Terminal::Markdown.terminal_width
     end
+  end
+
+  def test_print_submit_hint_mentions_send_and_exit_shortcuts
+    output = capture_io { Jules::Terminal.print_submit_hint }.first
+
+    assert_includes output, '(send: ctrl+s / alt+enter, exit: ctrl+d)'
   end
 end
