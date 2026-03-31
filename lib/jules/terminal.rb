@@ -126,7 +126,7 @@ module Jules
 
     def spinner_label
       take = rand < 0.8 ? 'clanking' : CYNICAL_SPINNER_TAKES.sample
-      "#{take}..."
+      "Jules is #{take}."
     end
 
     def screenplay_heading(name, color: PINK)
@@ -274,7 +274,7 @@ module Jules
         spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
         i = 0
         loop do
-          print "\r\e[K#{PINK}#{spinner[i % spinner.length]}#{RESET} #{COMMENT}#{label}#{RESET}"
+          print "\r\e[K#{COMMENT}#{label}#{RESET} #{PINK}#{spinner[i % spinner.length]}#{RESET}"
           sleep 0.1
           i += 1
         end
