@@ -18,7 +18,7 @@ module Jules
       provider_label: 'OpenRouter',
       base_url: 'https://openrouter.ai/api/v1/chat/completions',
       api_key_env: 'OPENROUTER_API_KEY',
-      default_model: 'qwen/qwen3-coder-flash',
+      default_model: 'qwen/qwen3-coder-next',
       max_tokens: 4096
     }.freeze
 
