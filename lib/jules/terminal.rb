@@ -266,7 +266,7 @@ module Jules
         spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
         i = 0
         loop do
-          print "\r\e[K#{PINK}#{spinner[i % spinner.length]}#{RESET} #{COMMENT}#{label}#{RESET}"
+          print "\r\e[K#{PINK}#{DIALOGUE_INDENT}#{spinner[i % spinner.length]}#{RESET} #{COMMENT}#{label}#{RESET}"
           sleep 0.1
           i += 1
         end
