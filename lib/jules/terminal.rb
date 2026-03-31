@@ -192,13 +192,14 @@ module Jules
       module_function
 
       def render(text)
+        return '' if text.nil? || text.strip.empty?
         raise 'glow is required but was not found in PATH' unless glow_available?
 
         width = terminal_width
         stdout, stderr, status = Open3.capture3(GLOW_ENV, 'glow', '-s', 'dracula', '-w', width.to_s, '-', stdin_data: text)
 
         raise "glow failed with exit status #{status.exitstatus}: #{stderr}" unless status.success?
-        raise 'glow returned empty output' if stdout.strip.empty?
+        return text if stdout.strip.empty?
 
         stdout
       end

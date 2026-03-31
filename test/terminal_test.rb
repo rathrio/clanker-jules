@@ -29,13 +29,12 @@ class TerminalTest < Minitest::Test
     end
   end
 
-  def test_render_markdown_raises_when_output_is_only_whitespace
+  def test_render_markdown_falls_back_to_raw_text_when_glow_output_is_only_whitespace
     success_status = status(success: true, exitstatus: 0)
 
     with_stubbed_singleton_method(Jules::Terminal::Markdown, :glow_available?, proc { true }) do
       with_stubbed_singleton_method(Open3, :capture3, proc { |_cmd, *_args, **_kwargs| ["\n", '', success_status] }) do
-        error = assert_raises(RuntimeError) { Jules::Terminal::Markdown.render('hello') }
-        assert_equal 'glow returned empty output', error.message
+        assert_equal 'hello', Jules::Terminal::Markdown.render('hello')
       end
     end
   end
