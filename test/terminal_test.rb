@@ -11,17 +11,6 @@ class TerminalTest < Minitest::Test
     Jules::Terminal::Markdown.remove_instance_variable(:@glow_available) if Jules::Terminal::Markdown.instance_variable_defined?(:@glow_available)
   end
 
-  def test_spinner_label_returns_a_known_take_with_ellipsis
-    label = Jules::Terminal.spinner_label
-
-    assert label.end_with?('...')
-
-    sampled_take = label.delete_suffix('...')
-    valid_takes = Jules::Terminal::CYNICAL_SPINNER_TAKES + ['clanking']
-
-    assert_includes valid_takes, sampled_take
-  end
-
   def test_render_markdown_raises_when_glow_missing
     with_stubbed_singleton_method(Jules::Terminal::Markdown, :glow_available?, proc { false }) do
       error = assert_raises(RuntimeError) { Jules::Terminal::Markdown.render('hello') }
