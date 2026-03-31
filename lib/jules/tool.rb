@@ -13,7 +13,7 @@ module Jules
 
     module ClassMethods
       def render_execution(args)
-        "Executing #{tool_name} with args: #{args.to_json}"
+        "#{tool_name.upcase}: #{args.to_json}"
       end
     end
 

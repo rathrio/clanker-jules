@@ -16,13 +16,12 @@ module Jules
     end
 
     def self.render_execution(args)
-      if args['start_line'] && args['end_line']
-        "Reading lines #{args['start_line']}-#{args['end_line']} from file: #{args['path']}"
-      elsif args['start_line']
-        "Reading from line #{args['start_line']} to the end of file: #{args['path']}"
-      else
-        "Reading file: #{args['path']}"
-      end
+      range = if args['start_line'] && args['end_line']
+                " (lines #{args['start_line']}-#{args['end_line']})"
+              elsif args['start_line']
+                " (from line #{args['start_line']})"
+              end
+      "READ: #{args['path']}#{range}"
     end
 
     param name: 'path', type: String, description: 'The path to the file to read'

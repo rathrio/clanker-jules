@@ -18,7 +18,7 @@ module Jules
     end
 
     def self.render_execution(args)
-      "Searching memory for: \"#{args['query']}\""
+      "MEMORY: \"#{args['query']}\""
     end
 
     param name: 'query',

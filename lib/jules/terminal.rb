@@ -171,8 +171,10 @@ module Jules
     def print_opening_scene(provider_label, model)
       puts "#{COMMENT}FADE IN:#{RESET}"
       puts
-      puts "#{COMMENT}A terminal flickers to life. JULES (#{provider_label}, #{model}) is online,"
-      puts "wired into your computer through local tools, and waiting for your next line.#{RESET}"
+      puts "#{COMMENT}INT. TERMINAL - NIGHT#{RESET}"
+      puts
+      puts "#{COMMENT}A cursor blinks in the void. JULES steps out of the darkness,"
+      puts "wearing #{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT} like a rented suit.#{RESET}"
     end
 
     def print_assistant(text)
@@ -219,35 +221,41 @@ module Jules
       end
     end
 
+    TOOL_LABEL_COLORS = {
+      'BASH' => ORANGE,
+      'READ' => CYAN,
+      'SEARCH' => GREEN,
+      'FIND CODE' => GREEN,
+      'GLOB' => GREEN,
+      'EDIT' => YELLOW,
+      'WRITE' => YELLOW,
+      'PATCH' => YELLOW,
+      'PATCH (DRY RUN)' => YELLOW,
+      'FETCH' => PINK,
+      'LOAD SKILL' => PURPLE,
+      'MEMORY' => PURPLE
+    }.freeze
+
     def print_tool_execution(text)
-      puts "#{COMMENT}#{text}#{RESET}"
+      label, rest = text.split(': ', 2)
+      color = TOOL_LABEL_COLORS[label] || COMMENT
+
+      if rest
+        puts "#{color}#{BOLD}#{label}:#{RESET} #{COMMENT}#{rest}#{RESET}"
+      else
+        puts "#{COMMENT}#{text}#{RESET}"
+      end
+      puts
     end
 
-    def print_tool_preview(tool_name, result)
+    def print_tool_preview(_tool_name, result)
       return if result.nil? || result.empty?
 
       lines = result.to_s.lines
-
-      puts "  #{COMMENT}╭─ Tool Result Preview (#{tool_name}) ─"
-      print_preview_lines(lines)
-      puts "  #{COMMENT}╰─"
-    end
-
-    def print_preview_lines(lines)
-      if lines.count > 6
-        print_truncated_preview(lines)
-      else
-        print_full_preview(lines)
-      end
-    end
-
-    def print_truncated_preview(lines)
-      lines[0..4].each { |line| puts "  #{COMMENT}│ #{line.chomp}" }
-      puts "  #{COMMENT}│ [...] (#{lines.count - 5} more lines)"
-    end
-
-    def print_full_preview(lines)
-      lines.each { |line| puts "  #{COMMENT}│ #{line.chomp}" }
+      preview = lines.count > 6 ? lines[0..4] : lines
+      preview.each { |line| puts "#{COMMENT}#{line.chomp}" }
+      puts "#{COMMENT}(#{lines.count - 5} more lines)" if lines.count > 6
+      puts
     end
 
     def print_error(message, raw: nil)
@@ -266,7 +274,7 @@ module Jules
         spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
         i = 0
         loop do
-          print "\r\e[K#{PINK}#{DIALOGUE_INDENT}#{spinner[i % spinner.length]}#{RESET} #{COMMENT}#{label}#{RESET}"
+          print "\r\e[K#{PINK}#{spinner[i % spinner.length]}#{RESET} #{COMMENT}#{label}#{RESET}"
           sleep 0.1
           i += 1
         end

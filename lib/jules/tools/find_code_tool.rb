@@ -92,12 +92,8 @@ module Jules
 
     def self.render_execution(args)
       base_path = args['path'] || '.'
-      if args['name']
-        kind = args['kind'] || 'definition'
-        "Finding #{kind}s of '#{args['name']}' in: #{base_path}"
-      else
-        "Finding code matching: #{args['pattern'].inspect} in: #{base_path}"
-      end
+      target = args['name'] || args['pattern']
+      "FIND CODE: #{target} in #{base_path}"
     end
 
     param name: 'pattern',

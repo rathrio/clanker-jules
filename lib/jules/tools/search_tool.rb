@@ -28,8 +28,7 @@ module Jules
     def self.render_execution(args)
       query = args['query']
       base_path = args['path'] || '.'
-      mode = truthy?(args['use_regex']) ? 'regex' : 'literal'
-      "Searching (#{mode}) for \"#{query}\" in: #{base_path}"
+      "SEARCH: \"#{query}\" in #{base_path}"
     end
 
     param name: 'query', type: String, description: 'The text to search for.'

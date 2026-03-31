@@ -17,7 +17,7 @@ module Jules
     end
 
     def self.render_execution(args)
-      "Editing file: #{args['path']}"
+      "EDIT: #{args['path']}"
     end
 
     param name: 'path', type: String, description: 'The path to the file to edit'

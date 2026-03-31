@@ -16,7 +16,7 @@ module Jules
     end
 
     def self.render_execution(args)
-      "Fetching webpage: #{args['url']}"
+      "FETCH: #{args['url']}"
     end
 
     param name: 'url', type: String, description: 'The URL of the webpage to fetch'

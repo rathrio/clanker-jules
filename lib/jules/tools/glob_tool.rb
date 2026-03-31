@@ -24,7 +24,7 @@ module Jules
     def self.render_execution(args)
       pattern = args['pattern']
       base_path = args['path'] || '.'
-      "Finding files with pattern: #{pattern} (in #{base_path})"
+      "GLOB: #{pattern} in #{base_path}"
     end
 
     param name: 'pattern', type: String, description: 'Glob pattern to match files (for example: **/*.rb).'

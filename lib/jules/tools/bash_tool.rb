@@ -20,7 +20,7 @@ module Jules
     end
 
     def self.render_execution(args)
-      "Running: `#{args['command']}`"
+      "BASH: #{args['command']}"
     end
 
     param name: 'command', type: String, description: 'The bash command to execute'

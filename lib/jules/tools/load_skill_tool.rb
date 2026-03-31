@@ -17,7 +17,7 @@ module Jules
     end
 
     def self.render_execution(args)
-      "Loading skill: #{args['name']}"
+      "LOAD SKILL: #{args['name']}"
     end
 
     param name: 'name',

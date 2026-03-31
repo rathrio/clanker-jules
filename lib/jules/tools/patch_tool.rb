@@ -22,8 +22,8 @@ module Jules
 
     def self.render_execution(args)
       cwd = args['path'] || Dir.pwd
-      mode = truthy?(args['dry_run']) ? 'dry-run' : 'apply'
-      "#{mode.capitalize} patch in: #{cwd}"
+      label = truthy?(args['dry_run']) ? 'PATCH (DRY RUN)' : 'PATCH'
+      "#{label}: #{cwd}"
     end
 
     param name: 'patch', type: String, description: 'Unified diff patch content to apply.'
