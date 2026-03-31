@@ -199,7 +199,7 @@ module Jules
       return if Terminal.submit_hint_shown
 
       Terminal.submit_hint_shown = true
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(Ctrl+S or Alt+Enter to send. The line stays open till you say so.)#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(ctrl+s or alt+enter to send)#{RESET}"
     end
 
     # Wraps Reline's input IO to intercept Ctrl+S and Alt+Enter as submit signals.
@@ -300,7 +300,7 @@ module Jules
       puts
       puts "#{COMMENT}INT. TERMINAL - NIGHT#{RESET}"
       puts
-      puts "#{COMMENT}A cursor blinks in the void. JULES steps out of the darkness,"
+      puts "#{COMMENT}A cursor blinks in the void. Jules steps out of the darkness,"
       puts "wearing #{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT} like a rented suit."
       loadout = "#{tool_count} tools on the hip."
       loadout += if skill_names.empty?
