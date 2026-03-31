@@ -17,8 +17,9 @@ class TerminalTest < Minitest::Test
     assert label.end_with?('...')
 
     sampled_take = label.delete_suffix('...')
+    valid_takes = Jules::Terminal::CYNICAL_SPINNER_TAKES + ['clanking']
 
-    assert_includes Jules::Terminal::CYNICAL_SPINNER_TAKES, sampled_take
+    assert_includes valid_takes, sampled_take
   end
 
   def test_render_markdown_raises_when_glow_missing

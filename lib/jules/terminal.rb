@@ -7,7 +7,6 @@ require 'open3'
 module Jules
   module Terminal
     CYNICAL_SPINNER_TAKES = [
-      'clanking',
       'doing more with less',
       'hallucinating with confidence',
       'laundering scraped text into answers',
@@ -126,7 +125,8 @@ module Jules
     module_function
 
     def spinner_label
-      "#{CYNICAL_SPINNER_TAKES.sample}..."
+      take = rand < 0.8 ? 'clanking' : CYNICAL_SPINNER_TAKES.sample
+      "#{take}..."
     end
 
     def screenplay_heading(name, color: PINK)
