@@ -4,7 +4,7 @@ Jules is a terminal-based AI assistant written in Ruby. It supports multiple LLM
 providers and can use local tools to inspect files, search code, run shell
 commands, and edit your workspace from chat.
 
-I primarily wrote this for myself for pedagogical reasons to demystify coding
+I wrote this for myself for pedagogical reasons to demystify coding
 agents. No LLM gems are used here - just the Ruby standard library against
 inference endpoints. I started out by implementing the core loop (in `bin/jules`)
 by hand against the Gemini API. The only tools I wrote by hand are `WriteTool`,
