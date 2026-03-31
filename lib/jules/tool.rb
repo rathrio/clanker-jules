@@ -96,7 +96,10 @@ module Jules
     end
 
     def self.find(name)
-      @known_tools.fetch(name)
+      @known_tools.fetch(name) do
+        available_tools = @known_tools.keys.sort.join(', ')
+        raise KeyError, "Unknown tool '#{name}'. Available tools: #{available_tools}"
+      end
     end
 
     def self.call(name, args)

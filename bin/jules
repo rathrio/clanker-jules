@@ -131,9 +131,6 @@ loop do
     session_started_at = nil
     Jules::Terminal.print_scene_cut
     next
-  when :multi
-    input = Jules::Terminal.read_multiline
-    next if input.empty?
   end
 
   session_started_at ||= Time.now.strftime('%Y-%m-%dT%H%M%S%Z')
@@ -160,8 +157,19 @@ loop do
       messages << Jules::Message.new('model', model_parts)
 
       tool_results = parsed_response[:data].map do |call|
-        tool_class = Jules::Tool.find(call[:name])
-        Jules::Terminal.print_tool_execution(tool_class.render_execution(call[:args]))
+        tool_class = begin
+          Jules::Tool.find(call[:name])
+        rescue KeyError
+          nil
+        end
+
+        execution = if tool_class
+                      tool_class.render_execution(call[:args])
+                    else
+                      "UNKNOWN TOOL: #{call[:name]}"
+                    end
+        Jules::Terminal.print_tool_execution(execution)
+
         result = Jules::Tool.call(call[:name], call[:args])
         Jules::Terminal.print_tool_preview(call[:name], result)
         { function_response: { name: call[:name], result: result, id: call[:id] } }

@@ -23,6 +23,8 @@ class ToolTest < Minitest::Test
   def test_tool_call_wraps_unknown_tool_errors
     result = Jules::Tool.call('not_a_real_tool', {})
 
-    assert_match(/Error executing tool 'not_a_real_tool': KeyError - /, result)
+    assert_match(/Error executing tool 'not_a_real_tool': KeyError - Unknown tool 'not_a_real_tool'\./, result)
+    assert_includes(result, 'Available tools:')
+    assert_includes(result, 'read')
   end
 end
