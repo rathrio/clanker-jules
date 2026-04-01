@@ -125,22 +125,37 @@ loop do
   input = Jules::Terminal.read_input
   next if input.empty?
 
-  case (cmd = Jules::Terminal.parse_slash_command(input))
-  when :clear
+  case Jules::Terminal.parse_slash_command(input)
+  in :clear
     messages.clear
     session_started_at = nil
     Jules::Terminal.print_scene_cut
     next
-  when Array
-    if cmd[0] == :model
-      if cmd[1]
-        provider.model = cmd[1]
-        Jules::Terminal.print_model_switch(provider.provider_label, provider.model)
+  in [:model, String => model]
+    provider.model = model
+    Jules::Terminal.print_model_switch(provider.provider_label, provider.model)
+    next
+  in [:model, nil]
+    models = begin
+      listed_models = provider.list_models
+      if listed_models.is_a?(Hash) && listed_models[:error]
+        Jules::Terminal.print_error(listed_models[:error])
+        nil
       else
-        Jules::Terminal.print_model_usage
+        listed_models.filter_map do |entry|
+          next unless entry.is_a?(Hash)
+
+          entry['id'] || entry['name']
+        end
       end
-      next
+    rescue NotImplementedError
+      nil
     end
+
+    Jules::Terminal.print_model_usage(models: models)
+    next
+  else
+    nil
   end
 
   session_started_at ||= Time.now.strftime('%Y-%m-%dT%H%M%S%Z')

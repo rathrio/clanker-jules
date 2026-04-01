@@ -126,4 +126,41 @@ class TerminalTest < Minitest::Test
       refute_predicate Jules::Terminal, :show_submit_hint?
     end
   end
+
+  def test_print_model_usage_shows_usage_only_without_models
+    output = capture_io { Jules::Terminal.print_model_usage }.first
+
+    assert_includes output, '(usage: /model <model-name>)'
+    refute_includes output, '(available models:)'
+  end
+
+  def test_print_model_usage_shows_available_models_when_provided
+    output = capture_io { Jules::Terminal.print_model_usage(models: %w[gpt-4o gemini-flash-latest]) }.first
+
+    assert_includes output, '(usage: /model <model-name>)'
+    assert_includes output, '(available models:)'
+    assert_includes output, '- gpt-4o'
+    assert_includes output, '- gemini-flash-latest'
+  end
+
+  def test_print_tool_preview_shows_full_edit_output_without_truncation
+    result = (1..8).map { |i| "line #{i}" }.join("\n")
+
+    output = capture_io { Jules::Terminal.print_tool_preview('edit', result) }.first
+
+    assert_includes output, 'line 1'
+    assert_includes output, 'line 8'
+    refute_includes output, 'more lines'
+  end
+
+  def test_print_tool_preview_truncates_non_edit_tool_output
+    result = (1..8).map { |i| "line #{i}" }.join("\n")
+
+    output = capture_io { Jules::Terminal.print_tool_preview('search', result) }.first
+
+    assert_includes output, 'line 1'
+    assert_includes output, 'line 5'
+    refute_includes output, 'line 6'
+    assert_includes output, '… 3 more lines'
+  end
 end

@@ -325,9 +325,15 @@ module Jules
       puts
     end
 
-    def print_model_usage
+    def print_model_usage(models: nil)
       puts
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}(usage: /model <model-name>)#{RESET}"
+      if models&.any?
+        puts "#{COMMENT}#{PARENTHETICAL_INDENT}(available models:)#{RESET}"
+        models.each do |model_name|
+          puts "#{COMMENT}#{PARENTHETICAL_INDENT}  - #{model_name}#{RESET}"
+        end
+      end
       puts
     end
 
@@ -578,13 +584,16 @@ module Jules
       puts
     end
 
-    def print_tool_preview(_tool_name, result)
+    UNTRUNCATED_TOOL_PREVIEW_NAMES = %w[edit patch].freeze
+
+    def print_tool_preview(tool_name, result)
       return if result.nil? || result.empty?
 
       lines = result.to_s.lines
-      preview = lines.count > 6 ? lines[0..4] : lines
+      untruncated = UNTRUNCATED_TOOL_PREVIEW_NAMES.include?(tool_name.to_s)
+      preview = !untruncated && lines.count > 6 ? lines[0..4] : lines
       preview.each { |line| puts "#{COMMENT}#{PARENTHETICAL_INDENT} #{line.chomp}#{RESET}" }
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT} \u2026 #{lines.count - 5} more lines#{RESET}" if lines.count > 6
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT} \u2026 #{lines.count - 5} more lines#{RESET}" if !untruncated && lines.count > 6
       puts
     end
 

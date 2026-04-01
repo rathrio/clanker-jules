@@ -9,7 +9,7 @@ class EditToolTest < Minitest::Test
       File.write(path, "puts 'hello'\n")
 
       tool = Jules::EditTool.new
-      tool.define_singleton_method(:display_diff) { |_file_path, _old_content, _new_content| nil }
+      tool.define_singleton_method(:display_diff) { |_file_path, _old_content, _new_content| '' }
 
       result = tool.call(
         'path' => path,
@@ -59,6 +59,24 @@ class EditToolTest < Minitest::Test
       )
 
       assert_equal 'Error: Search string found 2 times. Provide more context to make it unique.', result
+    end
+  end
+
+  def test_appends_diff_output_before_success_message
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'app.rb')
+      File.write(path, "puts 'hello'\n")
+
+      tool = Jules::EditTool.new
+      tool.define_singleton_method(:display_diff) { |_file_path, _old_content, _new_content| "-puts 'hello'\n+puts 'hi'\n" }
+
+      result = tool.call(
+        'path' => path,
+        'search' => "puts 'hello'",
+        'replace' => "puts 'hi'"
+      )
+
+      assert_equal "-puts 'hello'\n+puts 'hi'\n\nEdited #{path}", result
     end
   end
 end

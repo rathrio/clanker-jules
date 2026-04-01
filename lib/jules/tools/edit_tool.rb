@@ -38,11 +38,13 @@ module Jules
       return "Error: Search string found #{count} times. Provide more context to make it unique." if count > 1
 
       new_content = content.sub(search, replace)
-
-      display_diff(path, content, new_content)
+      diff = display_diff(path, content, new_content)
 
       File.write(path, new_content)
-      "Edited #{path}"
+
+      return "Edited #{path}" if diff.to_s.strip.empty?
+
+      "#{diff}\nEdited #{path}"
     end
 
     def display_diff(path, old_content, new_content)
@@ -53,7 +55,6 @@ module Jules
       old_file.close
       new_file.close
 
-      puts "\n"
       diff_command = [
         'diff -u',
         "-L #{path.shellescape}",
@@ -62,23 +63,24 @@ module Jules
         new_file.path.shellescape
       ].join(' ')
       diff = `#{diff_command}`
-      diff.each_line do |line|
+      rendered = diff.each_line.map do |line|
         if line.start_with?('+++') || line.start_with?('---')
-          print "\e[1m#{line}\e[0m"
+          "\e[1m#{line}\e[0m"
         elsif line.start_with?('+')
-          print "\e[32m#{line}\e[0m"
+          "\e[32m#{line}\e[0m"
         elsif line.start_with?('-')
-          print "\e[31m#{line}\e[0m"
+          "\e[31m#{line}\e[0m"
         elsif line.start_with?('@@')
-          print "\e[36m#{line}\e[0m"
+          "\e[36m#{line}\e[0m"
         else
-          print line
+          line
         end
-      end
-      puts "\n"
+      end.join
 
       old_file.unlink
       new_file.unlink
+
+      rendered
     end
     # rubocop:enable Metrics/AbcSize
   end
