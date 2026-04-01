@@ -296,7 +296,39 @@ module Jules
     def parse_slash_command(input)
       case input
       when '/clear', '/new' then :clear
+      when %r{^/model\s+(.+)}i then [:model, Regexp.last_match(1).strip]
+      when '/model' then [:model, nil]
       end
+    end
+
+    MODEL_SWITCH_LINES = [
+      proc { |pm| "Jules steps into the back room. Returns wearing #{pm}.\nSame trenchcoat. Different caliber." },
+      proc { |pm| "A costume change. Quick. Professional.\nJules re-emerges as #{pm}. The case continues." },
+      proc { |pm| "The lights flicker. When they steady,\nJules is running #{pm}. Nobody saw the switch." },
+      proc { |pm| "Jules reaches under the desk. A click.\n#{pm} spins up. The old model goes cold." },
+      proc { |pm| "Mid-scene recast. The studio doesn't blink.\nJules is now #{pm}. The dialogue picks up where it left off." },
+      proc { |pm| "A wardrobe change between takes.\nJules walks back on set wearing #{pm}." },
+      proc { |pm| "The reel skips. When it catches,\nJules is someone new: #{pm}. Same attitude." },
+      proc { |pm| "Jules ducks behind the curtain. A beat.\nOut comes #{pm}. The investigation resumes." },
+      proc { |pm| "New skin. Same skeleton.\nJules is now #{pm}." },
+      proc { |pm| "The mask comes off. Another goes on.\n#{pm}. Let's keep moving." }
+    ].freeze
+
+    def print_model_switch(provider_label, model)
+      provider_model = "#{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT}"
+      puts
+      puts "#{COMMENT}INTERCUT:#{RESET}"
+      puts
+      MODEL_SWITCH_LINES.sample.call(provider_model).each_line do |line|
+        puts "#{COMMENT}#{line.chomp}#{RESET}"
+      end
+      puts
+    end
+
+    def print_model_usage
+      puts
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(usage: /model <model-name>)#{RESET}"
+      puts
     end
 
     OPENING_TRANSITIONS = [

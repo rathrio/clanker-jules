@@ -45,7 +45,7 @@ end.parse!
 options[:model] = nil if provider_set_by_cli && !model_set_by_cli
 
 begin
-  PROVIDER = Jules::Provider.build(options[:provider], model: options[:model])
+  provider = Jules::Provider.build(options[:provider], model: options[:model])
 rescue KeyError
   warn "Unknown provider '#{options[:provider]}'. Use #{Jules::Provider.all_names.join(', ')}."
   exit 1
@@ -58,7 +58,7 @@ FileUtils.mkdir_p(CHATS_DIR)
 
 if options[:list_models]
   begin
-    models = PROVIDER.list_models
+    models = provider.list_models
     if models.is_a?(Hash) && models[:error]
       Jules::Terminal.print_error(models[:error])
       exit 1
@@ -81,10 +81,10 @@ if options[:list_models]
 end
 
 skills = Jules::Skill.all
-tools = Jules::Tool.declarations(format: PROVIDER.tool_format)
+tools = Jules::Tool.declarations(format: provider.tool_format)
 
 Jules::Terminal.print_opening_scene(
-  PROVIDER.provider_label, PROVIDER.model,
+  provider.provider_label, provider.model,
   tool_count: tools.size,
   skill_names: skills.keys
 )
@@ -125,12 +125,22 @@ loop do
   input = Jules::Terminal.read_input
   next if input.empty?
 
-  case Jules::Terminal.parse_slash_command(input)
+  case (cmd = Jules::Terminal.parse_slash_command(input))
   when :clear
     messages.clear
     session_started_at = nil
     Jules::Terminal.print_scene_cut
     next
+  when Array
+    if cmd[0] == :model
+      if cmd[1]
+        provider.model = cmd[1]
+        Jules::Terminal.print_model_switch(provider.provider_label, provider.model)
+      else
+        Jules::Terminal.print_model_usage
+      end
+      next
+    end
   end
 
   session_started_at ||= Time.now.strftime('%Y-%m-%dT%H%M%S%Z')
@@ -138,10 +148,10 @@ loop do
 
   loop do
     response = Jules::Terminal.with_spinner(leading_newline: true) do
-      PROVIDER.generate_content(messages, tools, system_prompt: system_prompt)
+      provider.generate_content(messages, tools, system_prompt: system_prompt)
     end
 
-    parsed_response = PROVIDER.parse_response(response)
+    parsed_response = provider.parse_response(response)
 
     extra_parts = parsed_response[:extra_parts] || []
 

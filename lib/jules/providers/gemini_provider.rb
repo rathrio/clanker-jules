@@ -18,7 +18,7 @@ module Jules
       @model = model || DEFAULT_MODEL
     end
 
-    attr_reader :model
+    attr_accessor :model
 
     def tool_format
       :gemini

@@ -50,7 +50,8 @@ module Jules
       }
     end
 
-    attr_reader :model, :provider_label
+    attr_accessor :model
+    attr_reader :provider_label
 
     def tool_format
       :openai
