@@ -38,6 +38,7 @@ module Jules
       dry_run = self.class.truthy?(params['dry_run'])
 
       return 'Error: patch cannot be empty.' if patch_text.strip.empty?
+      return unsupported_patch_format_error if apply_patch_envelope?(patch_text)
       return "Error: path not found: #{apply_path}" unless Dir.exist?(apply_path)
 
       Tempfile.create(['jules_patch', '.diff']) do |file|
@@ -80,6 +81,23 @@ module Jules
       else
         "Patch failed:\n#{output}"
       end
+    end
+
+    def apply_patch_envelope?(patch_text)
+      lines = patch_text.lines
+      return false if lines.empty?
+
+      first_line = lines.first.strip
+      last_line = lines.rfind { |line| !line.strip.empty? }&.strip
+
+      first_line == '*** Begin Patch' || last_line == '*** End Patch'
+    end
+
+    def unsupported_patch_format_error
+      <<~ERROR.chomp
+        Error: unsupported patch format. Please provide a standard unified diff starting with ---/+++ headers.
+        The *** Begin Patch / *** End Patch envelope is not supported by this tool.
+      ERROR
     end
 
     def dry_run_success_message(output)
