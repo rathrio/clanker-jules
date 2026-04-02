@@ -163,4 +163,13 @@ class TerminalTest < Minitest::Test
     refute_includes output, 'line 6'
     assert_includes output, '… 3 more lines'
   end
+
+  def test_print_tool_preview_treats_carriage_returns_as_line_breaks
+    result = "line 1\rline 2\rline 3"
+
+    output = capture_io { Jules::Terminal.print_tool_preview('bash', result) }.first
+    line_count = output.lines.count { |line| line.include?('line ') }
+
+    assert_equal 3, line_count
+  end
 end

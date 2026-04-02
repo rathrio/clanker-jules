@@ -589,7 +589,8 @@ module Jules
     def print_tool_preview(tool_name, result)
       return if result.nil? || result.empty?
 
-      lines = result.to_s.lines
+      normalized_result = result.to_s.gsub("\r\n", "\n").tr("\r", "\n")
+      lines = normalized_result.lines
       untruncated = UNTRUNCATED_TOOL_PREVIEW_NAMES.include?(tool_name.to_s)
       preview = !untruncated && lines.count > 6 ? lines[0..4] : lines
       preview.each { |line| puts "#{COMMENT}#{PARENTHETICAL_INDENT} #{line.chomp}#{RESET}" }
