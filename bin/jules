@@ -7,7 +7,6 @@ require 'optparse'
 
 require File.expand_path('../lib/jules', File.dirname(File.realpath(__FILE__)))
 
-# --- Configuration ---
 options = {
   provider: ENV.fetch('JULES_PROVIDER', 'openrouter').downcase,
   model: ENV.fetch('JULES_MODEL', nil),
@@ -40,8 +39,6 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-# If the provider is explicitly changed on the CLI but no explicit model is set,
-# fall back to that provider's default model instead of reusing JULES_MODEL.
 options[:model] = nil if provider_set_by_cli && !model_set_by_cli
 
 begin
@@ -51,10 +48,9 @@ rescue KeyError
   exit 1
 end
 
-# Ensure directories exist
 FileUtils.mkdir_p(File.expand_path('~/.agents/skills'))
-CHATS_DIR = File.expand_path('~/.jules/chats')
-FileUtils.mkdir_p(CHATS_DIR)
+chats_dir = File.expand_path('~/.jules/chats')
+FileUtils.mkdir_p(chats_dir)
 
 if options[:list_models]
   begin
@@ -89,10 +85,6 @@ Jules::Terminal.print_opening_scene(
   skill_names: skills.keys
 )
 
-# --- Main Application ---
-messages = []
-session_started_at = nil
-
 system_prompt_path = File.expand_path('~/.jules/SYSTEM.md')
 system_prompt = if File.exist?(system_prompt_path)
                   File.read(system_prompt_path)
@@ -108,103 +100,9 @@ unless skills.empty?
   system_prompt += "\n\nThe following skills are available:\n#{skill_definitions.join("\n")}"
 end
 
-flush_chat_log = lambda do
-  next unless session_started_at && !messages.empty?
-
-  log_file = File.join(CHATS_DIR, "#{session_started_at}.json")
-  File.write(log_file, Jules::Message.format_history(messages, format: :gemini).to_json)
-end
-
-at_exit do
-  flush_chat_log.call
-rescue StandardError => e
-  warn "Failed to save chat log: #{e.message}"
-end
-
-loop do
-  input = Jules::Terminal.read_input
-  next if input.empty?
-
-  case Jules::Terminal.parse_slash_command(input)
-  in :clear
-    messages.clear
-    session_started_at = nil
-    Jules::Terminal.print_scene_cut
-    next
-  in [:model, String => model]
-    provider.model = model
-    Jules::Terminal.print_model_switch(provider.provider_label, provider.model)
-    next
-  in [:model, nil]
-    models = begin
-      listed_models = provider.list_models
-      if listed_models.is_a?(Hash) && listed_models[:error]
-        Jules::Terminal.print_error(listed_models[:error])
-        nil
-      else
-        listed_models.filter_map do |entry|
-          next unless entry.is_a?(Hash)
-
-          entry['id'] || entry['name']
-        end
-      end
-    rescue NotImplementedError
-      nil
-    end
-
-    Jules::Terminal.print_model_usage(models: models)
-    next
-  else
-    nil
-  end
-
-  session_started_at ||= Time.now.strftime('%Y-%m-%dT%H%M%S%Z')
-  messages << Jules::Message.new('user', [{ text: input }])
-
-  loop do
-    response = Jules::Terminal.with_spinner(leading_newline: true) do
-      provider.generate_content(messages, tools, system_prompt: system_prompt)
-    end
-
-    parsed_response = provider.parse_response(response)
-
-    extra_parts = parsed_response[:extra_parts] || []
-
-    case parsed_response[:type]
-    when :message
-      messages << Jules::Message.new('model', extra_parts + [{ text: parsed_response[:data] }])
-      Jules::Terminal.print_assistant(parsed_response[:data])
-      break
-    when :tool_calls
-      model_parts = extra_parts + parsed_response[:data].map do |call|
-        { function_call: { name: call[:name], args: call[:args], id: call[:id] } }
-      end
-      messages << Jules::Message.new('model', model_parts)
-
-      tool_results = parsed_response[:data].map do |call|
-        tool_class = begin
-          Jules::Tool.find(call[:name])
-        rescue KeyError
-          nil
-        end
-
-        execution = if tool_class
-                      tool_class.render_execution(call[:args])
-                    else
-                      "UNKNOWN TOOL: #{call[:name]}"
-                    end
-        Jules::Terminal.print_tool_execution(execution)
-
-        result = Jules::Tool.call(call[:name], call[:args])
-        Jules::Terminal.print_tool_preview(call[:name], result)
-        { function_response: { name: call[:name], result: result, id: call[:id] } }
-      end
-      messages << Jules::Message.new('tool', tool_results)
-    when :error
-      Jules::Terminal.print_error(parsed_response[:data], raw: response.inspect)
-      break
-    end
-  end
-rescue Interrupt
-  Jules::Terminal.print_interrupt
-end
+Jules::Chat.new(
+  provider: provider,
+  tools: tools,
+  system_prompt: system_prompt,
+  chats_dir: chats_dir
+).run
