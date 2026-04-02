@@ -93,21 +93,37 @@ module Jules
         http.read_timeout = DEFAULT_READ_TIMEOUT
 
         response = http.request(request)
-        JSON.parse(response.body)
+        Jules::Result.ok(JSON.parse(response.body))
       rescue *NETWORK_ERRORS => e
         retries_left -= 1
-        return { 'error' => { 'message' => "#{@provider_label} network error: #{e.class} - #{e.message}" } } if retries_left.negative?
+        if retries_left.negative?
+          return Jules::Result.err(
+            code: 'provider_network_error',
+            message: "#{@provider_label} network error: #{e.class} - #{e.message}",
+            detail: { provider: provider_label, error_class: e.class.to_s }
+          )
+        end
 
         sleep(0.25 * (DEFAULT_RETRIES - retries_left))
         retry
       rescue JSON::ParserError => e
-        { 'error' => { 'message' => "Invalid JSON response from #{@provider_label}: #{e.message}" } }
+        Jules::Result.err(
+          code: 'provider_parse_error',
+          message: "Invalid JSON response from #{@provider_label}: #{e.message}",
+          detail: { provider: provider_label }
+        )
       end
     end
 
     def parse_response(response)
       message = response.dig('choices', 0, 'message')
-      return { type: :error, data: response.dig('error', 'message') || 'No response from API' } unless message
+      unless message
+        return Jules::Result.err(
+          code: 'provider_response_error',
+          message: response.dig('error', 'message') || 'No response from API',
+          detail: { provider: provider_label }
+        )
+      end
 
       if (calls = message['tool_calls'])
         tool_calls = calls.map do |call|
@@ -117,14 +133,24 @@ module Jules
             id: call['id']
           }
         end
-        return { type: :tool_calls, data: tool_calls, extra_parts: [] }
+        return Jules::Result.ok({ type: :tool_calls, data: tool_calls, extra_parts: [] })
       end
 
       if (text = message['content'])
-        return { type: :message, data: text, extra_parts: [] }
+        return Jules::Result.ok({ type: :message, data: text, extra_parts: [] })
       end
 
-      { type: :error, data: 'Unknown response format' }
+      Jules::Result.err(
+        code: 'provider_response_error',
+        message: 'Unknown response format',
+        detail: { provider: provider_label }
+      )
+    rescue JSON::ParserError => e
+      Jules::Result.err(
+        code: 'provider_parse_error',
+        message: "Invalid tool call arguments from #{@provider_label}: #{e.message}",
+        detail: { provider: provider_label }
+      )
     end
 
     def list_models
@@ -143,17 +169,27 @@ module Jules
         parsed = JSON.parse(response.body)
 
         data = parsed['data']
-        return data if data.is_a?(Array)
+        return Jules::Result.ok(data) if data.is_a?(Array)
 
-        []
+        Jules::Result.ok([])
       rescue *NETWORK_ERRORS => e
         retries_left -= 1
-        return { error: "#{@provider_label} network error: #{e.class} - #{e.message}" } if retries_left.negative?
+        if retries_left.negative?
+          return Jules::Result.err(
+            code: 'provider_network_error',
+            message: "#{@provider_label} network error: #{e.class} - #{e.message}",
+            detail: { provider: provider_label, error_class: e.class.to_s }
+          )
+        end
 
         sleep(0.25 * (DEFAULT_RETRIES - retries_left))
         retry
       rescue JSON::ParserError => e
-        { error: "Invalid JSON response from #{@provider_label}: #{e.message}" }
+        Jules::Result.err(
+          code: 'provider_parse_error',
+          message: "Invalid JSON response from #{@provider_label}: #{e.message}",
+          detail: { provider: provider_label }
+        )
       end
     end
   end

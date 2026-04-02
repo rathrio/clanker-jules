@@ -54,13 +54,13 @@ FileUtils.mkdir_p(chats_dir)
 
 if options[:list_models]
   begin
-    models = provider.list_models
-    if models.is_a?(Hash) && models[:error]
-      Jules::Terminal.print_error(models[:error])
+    models_result = provider.list_models
+    if models_result.err?
+      Jules::Terminal.print_error(models_result.message)
       exit 1
     end
 
-    models.each do |entry|
+    models_result.value.each do |entry|
       next unless entry.is_a?(Hash)
 
       model_name = entry['id'] || entry['name']

@@ -44,11 +44,22 @@ module Jules
 
     def process_model_turn
       loop do
-        response = @terminal.with_spinner(leading_newline: true) do
+        response_result = @terminal.with_spinner(leading_newline: true) do
           @provider.generate_content(@messages, @tools, system_prompt: @system_prompt)
         end
 
-        parsed_response = @provider.parse_response(response)
+        if response_result.err?
+          @terminal.print_error(response_result.message)
+          break
+        end
+
+        parsed_result = @provider.parse_response(response_result.value)
+        if parsed_result.err?
+          @terminal.print_error(parsed_result.message, raw: response_result.value.inspect)
+          break
+        end
+
+        parsed_response = parsed_result.value
         extra_parts = parsed_response[:extra_parts] || []
 
         case parsed_response[:type]
@@ -59,8 +70,8 @@ module Jules
         when :tool_calls
           append_model_tool_calls(parsed_response[:data], extra_parts)
           append_tool_results(parsed_response[:data])
-        when :error
-          @terminal.print_error(parsed_response[:data], raw: response.inspect)
+        else
+          @terminal.print_error('Unknown parsed response type', raw: parsed_response.inspect)
           break
         end
       end
@@ -89,8 +100,9 @@ module Jules
         @terminal.print_tool_execution(execution)
 
         result = Jules::Tool.call(call[:name], call[:args])
-        @terminal.print_tool_preview(call[:name], result)
-        { function_response: { name: call[:name], result: result, id: call[:id] } }
+        tool_output = result.ok? ? result.value : result.message
+        @terminal.print_tool_preview(call[:name], tool_output)
+        { function_response: { name: call[:name], result: tool_output, id: call[:id] } }
       end
 
       @messages << Jules::Message.new('tool', tool_results)
@@ -125,13 +137,13 @@ module Jules
     end
 
     def list_provider_models
-      listed_models = @provider.list_models
-      if listed_models.is_a?(Hash) && listed_models[:error]
-        @terminal.print_error(listed_models[:error])
+      listed_models_result = @provider.list_models
+      if listed_models_result.err?
+        @terminal.print_error(listed_models_result.message)
         return nil
       end
 
-      listed_models.filter_map do |entry|
+      listed_models_result.value.filter_map do |entry|
         next unless entry.is_a?(Hash)
 
         entry['id'] || entry['name']

@@ -7,7 +7,7 @@ require 'net/http'
 require 'jules'
 
 class OpenAICompatibleProviderTest < Minitest::Test
-  def test_generate_content_returns_error_hash_on_network_timeout
+  def test_generate_content_returns_error_result_on_network_timeout
     provider = Jules::OpenAICompatibleProvider.new(preset: :kiro)
 
     failing_http = Object.new
@@ -17,13 +17,15 @@ class OpenAICompatibleProviderTest < Minitest::Test
     failing_http.define_singleton_method(:request) { |_request| raise Net::ReadTimeout, 'timed out' }
 
     with_stubbed_singleton_method(Net::HTTP, :new, ->(_host, _port) { failing_http }) do
-      response = provider.generate_content([], [], system_prompt: 'system')
+      result = provider.generate_content([], [], system_prompt: 'system')
 
-      assert_equal 'Kiro network error: Net::ReadTimeout - Net::ReadTimeout with "timed out"', response.dig('error', 'message')
+      assert_predicate result, :err?
+      assert_equal 'provider_network_error', result.code
+      assert_equal 'Kiro network error: Net::ReadTimeout - Net::ReadTimeout with "timed out"', result.message
     end
   end
 
-  def test_generate_content_retries_then_succeeds
+  def test_generate_content_retries_then_returns_success_result
     provider = Jules::OpenAICompatibleProvider.new(preset: :kiro)
 
     call_count = 0
@@ -39,9 +41,10 @@ class OpenAICompatibleProviderTest < Minitest::Test
     end
 
     with_stubbed_singleton_method(Net::HTTP, :new, ->(_host, _port) { flaky_http }) do
-      response = provider.generate_content([], [], system_prompt: 'system')
+      result = provider.generate_content([], [], system_prompt: 'system')
 
-      assert_equal 'ok', response.dig('choices', 0, 'message', 'content')
+      assert_predicate result, :ok?
+      assert_equal 'ok', result.value.dig('choices', 0, 'message', 'content')
       assert_equal 2, call_count
     end
   end

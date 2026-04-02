@@ -103,9 +103,18 @@ module Jules
     end
 
     def self.call(name, args)
-      find(name).new.call(args)
+      result = find(name).new.call(args)
+      Jules::Result.ok(result)
     rescue StandardError => e
-      "Error executing tool '#{name}': #{e.class} - #{e.message}"
+      Jules::Result.err(
+        code: 'tool_execution_failed',
+        message: "Error executing tool '#{name}': #{e.class} - #{e.message}",
+        detail: {
+          tool_name: name,
+          error_class: e.class.to_s,
+          backtrace: e.backtrace
+        }
+      )
     end
 
     def as_json_type(type)
