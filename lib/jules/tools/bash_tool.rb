@@ -27,10 +27,14 @@ module Jules
 
     param name: 'command', type: String, description: 'The bash command to execute'
     def call(params)
-      output, status = Open3.capture2e(params.fetch('command'))
+      command = params.fetch('command')
+      output, status = Open3.capture2e(command)
       return output if status.success?
 
-      raise "Command failed with exit status #{status.exitstatus}: #{params.fetch('command')}"
+      message = ["Command failed with exit status #{status.exitstatus}: #{command}"]
+      message << "Working directory: #{Dir.pwd}"
+      message << "Command output:\n#{output}" unless output.to_s.strip.empty?
+      raise message.join("\n")
     end
   end
 end

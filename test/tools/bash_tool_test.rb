@@ -18,5 +18,15 @@ class BashToolTest < Minitest::Test
     end
 
     assert_includes error.message, 'Command failed with exit status 7'
+    assert_includes error.message, "Working directory: #{Dir.pwd}"
+  end
+
+  def test_error_includes_command_output
+    error = assert_raises(RuntimeError) do
+      Jules::BashTool.new.call('command' => "ruby -e 'STDERR.puts(\"nope\"); exit 2'")
+    end
+
+    assert_includes error.message, 'Command output:'
+    assert_includes error.message, 'nope'
   end
 end
