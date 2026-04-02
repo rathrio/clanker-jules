@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'open3'
+
 module Jules
   class BashTool
     include Tool
@@ -25,7 +27,10 @@ module Jules
 
     param name: 'command', type: String, description: 'The bash command to execute'
     def call(params)
-      `#{params.fetch('command')}`
+      output, status = Open3.capture2e(params.fetch('command'))
+      return output if status.success?
+
+      raise "Command failed with exit status #{status.exitstatus}: #{params.fetch('command')}"
     end
   end
 end
