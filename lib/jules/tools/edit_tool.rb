@@ -48,39 +48,12 @@ module Jules
     end
 
     def display_diff(path, old_content, new_content)
-      old_file = Tempfile.new('old')
-      new_file = Tempfile.new('new')
-      old_file.write(old_content)
-      new_file.write(new_content)
-      old_file.close
-      new_file.close
-
-      diff_command = [
-        'diff -u',
-        "-L #{path.shellescape}",
-        "-L #{path.shellescape}",
-        old_file.path.shellescape,
-        new_file.path.shellescape
-      ].join(' ')
-      diff = `#{diff_command}`
-      rendered = diff.each_line.map do |line|
-        if line.start_with?('+++') || line.start_with?('---')
-          "\e[1m#{line}\e[0m"
-        elsif line.start_with?('+')
-          "\e[32m#{line}\e[0m"
-        elsif line.start_with?('-')
-          "\e[31m#{line}\e[0m"
-        elsif line.start_with?('@@')
-          "\e[36m#{line}\e[0m"
-        else
-          line
-        end
-      end.join
-
-      old_file.unlink
-      new_file.unlink
-
-      rendered
+      Jules::Diff.render_unified_diff(
+        old_content: old_content,
+        new_content: new_content,
+        old_label: path,
+        new_label: path
+      )
     end
     # rubocop:enable Metrics/AbcSize
   end

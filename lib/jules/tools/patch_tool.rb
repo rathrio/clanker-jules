@@ -14,9 +14,9 @@ module Jules
         Use this tool when you:
         - Need to make multiple changes to a file in one operation
         - Have changes across several files to apply at once
-        - Want to preview changes with dry_run=true before committing them
+        - Want to preview changes with dry_run=true to validate before applying
 
-        Use edit for single, targeted replacements. Use write for creating new files.
+        Use edit for single, targeted replacements. Use write for creating new files or full rewrites.
       DESC
     end
 
@@ -41,13 +41,22 @@ module Jules
       return unsupported_patch_format_error if apply_patch_envelope?(patch_text)
       return "Error: path not found: #{apply_path}" unless Dir.exist?(apply_path)
 
+      touched_files = parse_touched_files(patch_text, strip)
+      original_content = capture_original_content(apply_path, touched_files)
+
       Tempfile.create(['jules_patch', '.diff']) do |file|
         file.write(patch_text)
         file.flush
 
         command = build_command(file.path, strip, dry_run)
         stdout, stderr, status = Open3.capture3(*command, chdir: apply_path)
-        format_result(status, stdout, stderr, dry_run)
+        diff_output = if status.success? && !dry_run
+                        render_diff_output(apply_path, touched_files, original_content)
+                      else
+                        ''
+                      end
+
+        format_result(status, stdout, stderr, dry_run, diff_output)
       end
     end
 
@@ -69,18 +78,83 @@ module Jules
       command + ['-i', patch_file_path]
     end
 
-    def format_result(status, stdout, stderr, dry_run)
+    def format_result(status, stdout, stderr, dry_run, diff_output)
       output = [stdout, stderr].reject(&:empty?).join("\n").strip
 
       if status.success?
         return dry_run_success_message(output) if dry_run
 
-        output.empty? ? 'Patch applied successfully.' : output
+        success_message = output.empty? ? 'Patch applied successfully.' : output
+        return success_message if diff_output.to_s.strip.empty?
+
+        "#{diff_output}\n#{success_message}"
       elsif dry_run
         "Dry-run failed:\n#{output}"
       else
         "Patch failed:\n#{output}"
       end
+    end
+
+    def parse_touched_files(patch_text, strip)
+      touched_files = []
+      current_old = nil
+
+      patch_text.each_line do |line|
+        current_old = normalize_patch_path(line, strip) if line.start_with?('--- ')
+
+        next unless line.start_with?('+++ ')
+
+        current_new = normalize_patch_path(line, strip)
+        touched_files << { old: current_old, new: current_new }
+        current_old = nil
+      end
+
+      touched_files
+    end
+
+    def normalize_patch_path(line, strip)
+      raw_path = line.split(' ', 2).last.to_s.split(/[\t\s]/, 2).first.to_s
+      return nil if raw_path.empty? || raw_path == File::NULL
+
+      parts = raw_path.sub(%r{\A\./}, '').split('/')
+      stripped = parts.drop(strip)
+      return nil if stripped.empty?
+
+      stripped.join('/')
+    end
+
+    def capture_original_content(apply_path, touched_files)
+      paths = touched_files.flat_map { |entry| [entry[:old], entry[:new]] }.compact.uniq
+
+      paths.to_h do |relative_path|
+        full_path = File.join(apply_path, relative_path)
+        content = File.exist?(full_path) ? File.read(full_path) : nil
+        [relative_path, content]
+      end
+    end
+
+    def render_diff_output(apply_path, touched_files, original_content)
+      touched_files.filter_map do |entry|
+        old_path = entry[:old]
+        new_path = entry[:new]
+        old_label = old_path || File::NULL
+        new_label = new_path || File::NULL
+        old_content = old_path ? original_content.fetch(old_path, nil) : nil
+
+        new_content = if new_path
+                        updated_path = File.join(apply_path, new_path)
+                        File.exist?(updated_path) ? File.read(updated_path) : nil
+                      end
+
+        diff = Jules::Diff.render_unified_diff(
+          old_content: old_content,
+          new_content: new_content,
+          old_label: old_label,
+          new_label: new_label
+        )
+
+        diff unless diff.to_s.strip.empty?
+      end.join("\n")
     end
 
     def apply_patch_envelope?(patch_text)
