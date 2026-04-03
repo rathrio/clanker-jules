@@ -25,8 +25,7 @@ module Jules
         @messages << Jules::Message.new('user', [{ text: input }])
 
         started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        process_model_turn
-        elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at
+        elapsed = process_model_turn(started_at)
         Jules::Notification.notify_idle if elapsed >= 10
       rescue Interrupt
         @terminal.print_interrupt
@@ -45,7 +44,7 @@ module Jules
       @session_started_at = Time.now.strftime('%Y-%m-%dT%H%M%S%Z')
     end
 
-    def process_model_turn
+    def process_model_turn(started_at)
       loop do
         response_result = @terminal.with_spinner(leading_newline: true) do
           @provider.generate_content(@messages, @tools, system_prompt: @system_prompt)
@@ -54,14 +53,14 @@ module Jules
         if response_result.err?
           @terminal.print_error(response_result.message)
           Jules::Notification.notify_crash(response_result.message)
-          break
+          return Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at
         end
 
         parsed_result = @provider.parse_response(response_result.value)
         if parsed_result.err?
           @terminal.print_error(parsed_result.message, raw: response_result.value.inspect)
           Jules::Notification.notify_crash(parsed_result.message)
-          break
+          return Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at
         end
 
         parsed_response = parsed_result.value
@@ -69,16 +68,17 @@ module Jules
 
         case parsed_response[:type]
         when :message
+          elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at
           @messages << Jules::Message.new('model', extra_parts + [{ text: parsed_response[:data] }])
-          @terminal.print_assistant(parsed_response[:data])
-          break
+          @terminal.print_assistant(parsed_response[:data], elapsed: elapsed)
+          return elapsed
         when :tool_calls
           append_model_tool_calls(parsed_response[:data], extra_parts)
           append_tool_results(parsed_response[:data])
         else
           @terminal.print_error('Unknown parsed response type', raw: parsed_response.inspect)
           Jules::Notification.notify_crash('Unknown parsed response type')
-          break
+          return Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at
         end
       end
     end

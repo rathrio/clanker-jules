@@ -201,10 +201,11 @@ module Jules
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{Script::CLOSING_PARENTHETICALS.sample}#{RESET}"
     end
 
-    def print_assistant(text)
+    def print_assistant(text, elapsed: nil)
       screenplay_heading('JULES', color: PURPLE)
       print_action_beat(Script::JULES_ACTION_BEATS)
       puts render_markdown(text)
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{elapsed.round(1)} seconds pass)#{RESET}" if elapsed
     end
 
     def print_scene_cut
