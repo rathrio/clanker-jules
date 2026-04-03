@@ -107,7 +107,17 @@ module Jules
                                 })
       end
 
-      return Jules::Result.ok({ type: :message, data: '', extra_parts: thinking_parts }) unless thinking_parts.empty?
+      if thinking_parts.any?
+        finish_reason = candidate['finishReason']
+        message = 'Gemini returned only thinking parts with no text or tool calls'
+        message = "#{message} (finishReason: #{finish_reason})" if finish_reason
+
+        return Jules::Result.err(
+          code: 'provider_response_error',
+          message: message,
+          detail: { provider: provider_label, finish_reason: finish_reason }
+        )
+      end
 
       Jules::Result.err(
         code: 'provider_response_error',
