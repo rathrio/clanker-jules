@@ -77,12 +77,15 @@ if options[:list_models]
 end
 
 skills = Jules::Skill.all
-tools = Jules::Tool.declarations(format: provider.tool_format)
+lobotomized = provider.lobotomized?
+tool_names = lobotomized ? Jules::Tool::LOBOTOMIZED_TOOLS : nil
+tools = Jules::Tool.declarations(format: provider.tool_format, only: tool_names)
 
 Jules::Terminal.print_opening_scene(
   provider.provider_label, provider.model,
   tool_count: tools.size,
-  skill_names: skills.keys
+  skill_names: skills.keys,
+  lobotomized: lobotomized
 )
 
 system_prompt_path = File.expand_path('~/.jules/SYSTEM.md')
@@ -91,7 +94,7 @@ system_prompt = if File.exist?(system_prompt_path)
                 else
                   'You are Jules, a straight and to-the-point general-purpose terminal assistant.'
                 end
-system_prompt += "\n\nAdditional instructions from AGENTS.md:\n#{File.read('AGENTS.md')}" if File.exist?('AGENTS.md')
+system_prompt += "\n\nAdditional instructions from AGENTS.md:\n#{File.read('AGENTS.md')}" if !lobotomized && File.exist?('AGENTS.md')
 
 unless skills.empty?
   skill_definitions = skills.each_value.map do |skill|

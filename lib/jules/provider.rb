@@ -47,6 +47,10 @@ module Jules
       raise NotImplementedError, "#{self.class} does not support model listing"
     end
 
+    def lobotomized?
+      false
+    end
+
     def provider_label
       self.class.to_s.split('::').last.sub(/Provider$/, '')
     end

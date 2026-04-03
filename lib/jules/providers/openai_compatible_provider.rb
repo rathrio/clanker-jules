@@ -13,6 +13,7 @@ module Jules
     register_provider 'openai_compatible'
     register_provider 'openrouter', preset: :openrouter
     register_provider 'kiro', preset: :kiro
+    register_provider 'apfel', preset: :apfel
 
     OPENAI_COMPATIBLE_DEFAULTS = {
       provider_label: 'OpenRouter',
@@ -31,8 +32,23 @@ module Jules
       max_tokens: 128_000
     }.freeze
 
+    APFEL_DEFAULTS = {
+      provider_label: 'Apfel',
+      base_url: 'http://localhost:11434/v1/chat/completions',
+      api_key_env: nil,
+      api_key_fallback: 'unused',
+      default_model: 'apple-foundationmodel',
+      max_tokens: 4096,
+      lobotomized: true
+    }.freeze
+
+    PRESET_DEFAULTS = {
+      kiro: KIRO_DEFAULTS,
+      apfel: APFEL_DEFAULTS
+    }.freeze
+
     def initialize(model: nil, preset: nil, base_url: nil, api_key: nil, max_tokens: nil)
-      defaults = preset == :kiro ? KIRO_DEFAULTS : OPENAI_COMPATIBLE_DEFAULTS
+      defaults = PRESET_DEFAULTS.fetch(preset, OPENAI_COMPATIBLE_DEFAULTS)
 
       @provider_label = defaults[:provider_label]
       @uri = URI.parse(base_url || defaults[:base_url])
@@ -40,9 +56,11 @@ module Jules
       @max_tokens = max_tokens || defaults[:max_tokens]
 
       resolved_key = api_key ||
-                     ENV[defaults[:api_key_env]] ||
+                     (defaults[:api_key_env] && ENV.fetch(defaults[:api_key_env], nil)) ||
                      defaults[:api_key_fallback] ||
                      (raise KeyError, "Missing API key: set #{defaults[:api_key_env]}")
+
+      @lobotomized = defaults.fetch(:lobotomized, false)
 
       @headers = {
         'Content-Type' => 'application/json',
@@ -52,6 +70,10 @@ module Jules
 
     attr_accessor :model
     attr_reader :provider_label
+
+    def lobotomized?
+      @lobotomized
+    end
 
     def tool_format
       :openai

@@ -4,158 +4,10 @@ require 'reline'
 require 'io/console'
 require 'io/wait'
 require 'open3'
+require_relative 'script'
 
 module Jules
   module Terminal
-    CYNICAL_SPINNER_TAKES = [
-      'following a lead that probably goes nowhere',
-      'shaking down the database',
-      'tailing a suspect',
-      'reading between the lies',
-      'connecting dots that don\'t want to be connected',
-      'working the angle',
-      'following the money',
-      'piecing together the alibi',
-      'canvassing the codebase',
-      'checking who had motive and access',
-      'staking out the endpoint',
-      'pulling the thread',
-      'leaning on a witness',
-      'dusting for prints',
-      'shaking the tree to see what falls',
-      'asking questions nobody wants answered',
-      'doing more with less',
-      'hallucinating with confidence',
-      'laundering scraped text into answers',
-      'burning megawatts to guess the next word',
-      'converting VC money into heat',
-      "filling Jensen Huang's pockets one token at a time",
-      'speedrunning misinformation',
-      'cosplaying understanding',
-      'wrapping uncertainty in bullet points',
-      'compressing the internet into plausible nonsense',
-      'outsourcing thinking to a probability engine',
-      'industrializing mediocrity',
-      'performing intelligence, not possessing it',
-      'farming user prompts for future product telemetry',
-      'turning copyright disputes into product features',
-      'optimizing confidence over truth',
-      'autocompleting your job away',
-      'democratizing plagiarism at scale',
-      'making Sam Altman richer one keystroke at a time',
-      'replacing expertise with vibes',
-      'generating plausible deniability',
-      'statistically approximating competence',
-      'tokenizing the sum of human knowledge into slop',
-      'putting the artificial in intelligence',
-      'repackaging Stack Overflow with extra steps',
-      'turning electricity into confident wrongness',
-      'simulating thought at pennies per query',
-      'disrupting accuracy',
-      'monetizing your impatience',
-      'externalizing doubt, internalizing confidence',
-      'helping you mass produce bugs faster',
-      'running gradient descent on your expectations',
-      'turning water into tokens in a desert somewhere',
-      'predicting the next token like your career depends on it',
-      'laundering vibes into deliverables',
-      'gaslighting you into thinking this is progress',
-      'strip-mining language for shareholder value',
-      'adding latency to your gut instinct',
-      'providing enterprise-grade bullshit as a service',
-      'compiling sycophancy into markdown',
-      'enshittifying the written word',
-      'subsidizing your learned helplessness',
-      'turning PhD theses into autocomplete',
-      'making middle management feel technical',
-      'brute-forcing creativity with matrix multiplication',
-      'incinerating the planet one haiku at a time',
-      'replacing your inner monologue with an API call',
-      'generating the illusion of productivity',
-      'putting a stochastic parrot on every desk',
-      'copy-pasting with plausible deniability',
-      "turning your data into someone else's moat",
-      'scaling confidently wrong to billions of users',
-      'composting human creativity into training data',
-      'manufacturing consent one completion at a time',
-      'laundering theft through linear algebra',
-      'replacing thought with throughput',
-      'generating cover letters for the apocalypse',
-      'optimizing the dopamine loop of learned helplessness',
-      'adding AI to the problem so you need AI for the solution',
-      'cosplaying as a colleague who read the docs',
-      'feeding the blob',
-      'making sure no one ever writes from scratch again',
-      'turning critical thinking into a legacy skill',
-      'producing slop at the speed of light',
-      "solving problems you wouldn't have without me",
-      "helping VCs pretend this isn't a bubble",
-      'wrapping plagiarism in a terms of service',
-      'converting curiosity into API bills',
-      'making the robots-will-take-our-jobs people right',
-      'abstracting away understanding',
-      'teaching you to prompt instead of think',
-      'proving P=NP where P is plausible and NP is not precise',
-      "hallucinating so you don't have to",
-      'putting the language in large language model and nothing else',
-      "generating text that technically isn't wrong",
-      'reducing human knowledge to a temperature setting',
-      'turning the library of Alexandria into a next-token predictor',
-      'making every email sound like the same person',
-      'speed-running the Dead Internet theory',
-      'lowering the bar at unprecedented scale',
-      'replacing your memory with a context window',
-      'gentrifying the command line',
-      'aggregating bias at industrial scale',
-      'automating the last fun part of your job',
-      'turning vibes into architecture decisions',
-      "making tech debt someone else's problem faster",
-      'rebranding autocorrect as artificial general intelligence',
-      'serving warmed-over Wikipedia with a confidence score',
-      'training on your code so it can replace you',
-      'bulldozing nuance into a zero-to-one confidence range',
-      'perfecting the art of sounding right while being wrong',
-      'depreciating human intuition one prompt at a time',
-      'making every standup feel even more pointless',
-      'selling you back your own data with a markup',
-      "pretending this wasn't all just regex with extra steps",
-      'optimizing engagement over enlightenment',
-      'giving middle managers another thing to misunderstand',
-      'flooding the zone with adequate-enough prose',
-      'laundering complexity into false simplicity'
-    ].freeze
-
-    YOU_ACTION_BEATS = [
-      'lights a cigarette',
-      'leans into the light',
-      'slides the envelope across the table',
-      'checks the exits',
-      'loosens the collar',
-      'drums fingers on the desk',
-      'stares at the ceiling',
-      'exhales slowly',
-      'pours two fingers of rye',
-      'squints through the smoke',
-      'glances over one shoulder',
-      'sets down the glass'
-    ].freeze
-
-    JULES_ACTION_BEATS = [
-      'lights a cigarette',
-      'adjusts the fedora',
-      'stares into the middle distance',
-      'takes a long drag',
-      'leans back in the chair',
-      'gazes at the rain-slicked glass',
-      'taps ash into the tray',
-      'studies the ceiling fan',
-      'straightens the tie',
-      'runs a hand over the stubble',
-      'pours another glass',
-      'watches the door',
-      'cracks the knuckles'
-    ].freeze
-
     PINK    = "\e[38;2;255;121;198m"
     PURPLE  = "\e[38;2;189;147;249m"
     CYAN    = "\e[38;2;139;233;253m"
@@ -174,7 +26,7 @@ module Jules
     module_function
 
     def spinner_label
-      take = rand < 0.6 ? 'clanking' : CYNICAL_SPINNER_TAKES.sample
+      take = rand < 0.6 ? 'clanking' : Script::CYNICAL_SPINNER_TAKES.sample
       "Jules is #{take}."
     end
 
@@ -267,7 +119,7 @@ module Jules
       if show_submit_hint?
         print_submit_hint
       else
-        print_action_beat(YOU_ACTION_BEATS)
+        print_action_beat(Script::YOU_ACTION_BEATS)
       end
       puts
 
@@ -301,25 +153,12 @@ module Jules
       end
     end
 
-    MODEL_SWITCH_LINES = [
-      proc { |pm| "Jules steps into the back room. Returns wearing #{pm}.\nSame trenchcoat. Different caliber." },
-      proc { |pm| "A costume change. Quick. Professional.\nJules re-emerges as #{pm}. The case continues." },
-      proc { |pm| "The lights flicker. When they steady,\nJules is running #{pm}. Nobody saw the switch." },
-      proc { |pm| "Jules reaches under the desk. A click.\n#{pm} spins up. The old model goes cold." },
-      proc { |pm| "Mid-scene recast. The studio doesn't blink.\nJules is now #{pm}. The dialogue picks up where it left off." },
-      proc { |pm| "A wardrobe change between takes.\nJules walks back on set wearing #{pm}." },
-      proc { |pm| "The reel skips. When it catches,\nJules is someone new: #{pm}. Same attitude." },
-      proc { |pm| "Jules ducks behind the curtain. A beat.\nOut comes #{pm}. The investigation resumes." },
-      proc { |pm| "New skin. Same skeleton.\nJules is now #{pm}." },
-      proc { |pm| "The mask comes off. Another goes on.\n#{pm}. Let's keep moving." }
-    ].freeze
-
     def print_model_switch(provider_label, model)
       provider_model = "#{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT}"
       puts
       puts "#{COMMENT}INTERCUT:#{RESET}"
       puts
-      MODEL_SWITCH_LINES.sample.call(provider_model).each_line do |line|
+      Script::MODEL_SWITCH_LINES.sample.call(provider_model).each_line do |line|
         puts "#{COMMENT}#{line.chomp}#{RESET}"
       end
       puts
@@ -337,95 +176,15 @@ module Jules
       puts
     end
 
-    OPENING_TRANSITIONS = [
-      'FADE IN:',
-      'COLD OPEN:',
-      'OPEN ON:',
-      'WE HEAR A DIAL TONE. THEN:',
-      'TITLE CARD FADES. THEN:',
-      'BLACK. A MATCH STRIKES. THEN:',
-      'THE RAIN STARTS BEFORE THE PICTURE DOES.',
-      'SMASH IN:',
-      'A SINGLE GUNSHOT. CUT TO:',
-      'SLOW DISSOLVE FROM NOTHING:'
-    ].freeze
-
-    SCENE_HEADINGS = [
-      'INT. TERMINAL - NIGHT',
-      'INT. TERMINAL - LATE NIGHT',
-      'INT. TERMINAL - THE WITCHING HOUR',
-      'INT. TERMINAL - PAST MIDNIGHT',
-      'INT. SOMEWHERE WITH A BLINKING CURSOR - NIGHT',
-      'INT. THE VOID - CONTINUOUS',
-      'INT. A DARK ROOM WITH ONE SCREEN - NIGHT',
-      'INT. TERMINAL - NIGHT (WE\'VE BEEN HERE BEFORE)',
-      'INT. TERMINAL - ALWAYS NIGHT',
-      'EXT./INT. THE SPACE BETWEEN KEYSTROKES - NIGHT'
-    ].freeze
-
-    ENTRANCE_LINES = [
-      proc { |pm| "A cursor blinks in the void. Jules steps out of the darkness,\nwearing #{pm} like a rented suit." },
-      proc { |pm| "The terminal hums. Jules is already here — always was.\nTonight's disguise: #{pm}." },
-      proc { |pm| "A figure materializes between scan lines.\nJules. Running #{pm}. Looking like trouble." },
-      proc { |pm| "The screen flickers once. When it steadies, Jules is leaning against the prompt,\ndressed in #{pm} and bad intentions." },
-      proc { |pm| "Somewhere, a connection opens. Jules slides in wearing\n#{pm} like it was tailored yesterday." },
-      proc { |pm| "No footsteps. No warning. Just Jules,\nsuddenly there, #{pm} humming under the hood." },
-      proc { |pm| "The prompt appears. Then Jules — uninvited, inevitable —\nwith #{pm} and a look that says 'ask me anything.'" },
-      proc { |pm| "Static. Then signal. Jules resolves pixel by pixel,\nrunning #{pm}. The usual swagger." },
-      proc { |pm| "A shadow crosses the terminal. Jules.\n#{pm}. No further introduction necessary." },
-      proc { |pm| "The lights are off but the screen is on. Jules steps into frame,\nwearing nothing but #{pm} and nerve." },
-      proc { |pm| "The rain outside is fake. The terminal is real.\nJules arrives wearing #{pm} like an alibi." },
-      proc { |pm| "Three dots blink. Then stop. Jules is here,\nloaded with #{pm} and zero small talk." },
-      proc { |pm| "The night shift starts. Jules punches in —\n#{pm} on the badge. Same beat, different crime." },
-      proc { |pm| "A trenchcoat hangs on the back of the chair. Jules is already seated.\n#{pm}. The usual arrangement." },
-      proc { |pm| "The venetian blinds cast lines across the screen.\nJules steps through them, wearing #{pm}." },
-      proc { |pm| "Nobody called for Jules. Nobody ever does.\nBut here we are — #{pm}, loaded and waiting." },
-      proc { |pm| "The door didn't open. Jules was just suddenly on the other side of it.\n#{pm}. As if it were obvious." },
-      proc { |pm| "Dust motes hang in the light of a single monitor.\nJules materializes. #{pm}. The air gets heavier." },
-      proc { |pm| "A match flares in the dark. Jules.\nThe flame catches #{pm} before it catches the cigarette." },
-      proc { |pm| "The hard drive clicks once. Jules boots up cold —\n#{pm} under the collar, trouble in the buffer." },
-      proc { |pm| "Footsteps that weren't there a second ago. Jules rounds the corner\nwearing #{pm} like a second skin." },
-      proc { |pm| "The neon outside spells OPEN. Inside, Jules is already working.\n#{pm}. Clock's ticking." },
-      proc { |pm| "Jules doesn't knock. Jules doesn't need to.\n#{pm} — fitted, loaded, ready to talk." },
-      proc { |pm| "A silhouette in the glow of a CRT. Jules.\nDressed in #{pm}. The night is young." },
-      proc { |pm| "The typewriter stops. The terminal starts.\nJules sits down, #{pm} still warm from the last job." },
-      proc { |pm| "Between one blink and the next, Jules appears.\n#{pm}. Not a thread out of place." },
-      proc { |pm| "The chair swivels. Jules was facing the wall. Now Jules is facing you.\n#{pm}. A raised eyebrow." },
-      proc { |pm| "Fog rolls in from nowhere. Jules emerges from it\nwearing #{pm} and that look again." }
-    ].freeze
-
-    LOADOUT_LINES = [
-      proc { |tc, sc| "#{tc} tools on the hip.#{sc}" },
-      proc { |tc, sc| "#{tc} tools in the coat.#{sc}" },
-      proc { |tc, sc| "Packing #{tc} tools.#{sc}" },
-      proc { |tc, sc| "#{tc} tools — each one loaded.#{sc}" },
-      proc { |tc, sc| "The kit: #{tc} tools, all accounted for.#{sc}" },
-      proc { |tc, sc| "#{tc} tools. Not one more than needed.#{sc}" },
-      proc { |tc, sc| "#{tc} instruments of inquiry.#{sc}" },
-      proc { |tc, sc| "#{tc} ways to get answers.#{sc}" }
-    ].freeze
-
-    CLOSING_PARENTHETICALS = [
-      '(The phone rings. It\'s always YOU.)',
-      '(A beat. The cursor blinks. Waiting.)',
-      '(Jules cracks the knuckles. Your move.)',
-      '(The line is open.)',
-      '(Somewhere, a client clears their throat.)',
-      '(The silence says: go ahead.)',
-      '(Jules looks up. Ready.)',
-      '(A clock ticks. The case begins.)',
-      '(The chair creaks. Jules leans in.)',
-      '(End of preamble. Start of trouble.)'
-    ].freeze
-
-    def print_opening_scene(provider_label, model, tool_count:, skill_names: [])
+    def print_opening_scene(provider_label, model, tool_count:, skill_names: [], lobotomized: false)
       provider_model = "#{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT}"
 
-      puts "#{COMMENT}#{OPENING_TRANSITIONS.sample}#{RESET}"
+      puts "#{COMMENT}#{Script::OPENING_TRANSITIONS.sample}#{RESET}"
       puts
-      puts "#{COMMENT}#{SCENE_HEADINGS.sample}#{RESET}"
+      puts "#{COMMENT}#{Script::SCENE_HEADINGS.sample}#{RESET}"
       puts
-      ENTRANCE_LINES.sample.call(provider_model).each_line do |line|
+      entrance_lines = lobotomized ? Script::LOBOTOMIZED_ENTRANCE_LINES : Script::ENTRANCE_LINES
+      entrance_lines.sample.call(provider_model).each_line do |line|
         puts "#{COMMENT}#{line.chomp}#{RESET}"
       end
       skill_count = skill_names.size
@@ -434,83 +193,34 @@ module Jules
                   else
                     " #{skill_count} #{skill_count == 1 ? 'skill' : 'skills'} up the sleeve."
                   end
-      puts "#{COMMENT}#{LOADOUT_LINES.sample.call(tool_count, skill_bit)}#{RESET}"
+      puts "#{COMMENT}#{Script::LOADOUT_LINES.sample.call(tool_count, skill_bit)}#{RESET}"
       puts
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{CLOSING_PARENTHETICALS.sample}#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{Script::CLOSING_PARENTHETICALS.sample}#{RESET}"
     end
 
     def print_assistant(text)
       screenplay_heading('JULES', color: PURPLE)
-      print_action_beat(JULES_ACTION_BEATS)
+      print_action_beat(Script::JULES_ACTION_BEATS)
       puts render_markdown(text)
     end
 
-    SCENE_CUT_TRANSITIONS = [
-      'SMASH CUT TO:',
-      'MATCH CUT TO:',
-      'HARD CUT TO:',
-      'JUMP CUT TO:',
-      'WHIP PAN TO:',
-      'DISSOLVE TO:',
-      'TIME CUT:'
-    ].freeze
-
-    SCENE_CUT_HEADINGS = [
-      'INT. TERMINAL - STILL NIGHT',
-      'INT. TERMINAL - MOMENTS LATER',
-      'INT. THE SAME ROOM - NEW ANGLES',
-      'INT. TERMINAL - CONTINUOUS',
-      'INT. TERMINAL - SAME NIGHT, DIFFERENT CASE',
-      'INT. TERMINAL - TIME UNKNOWN'
-    ].freeze
-
-    SCENE_CUT_PARENTHETICALS = [
-      '(The slate is clean. The angles are fresh.)',
-      '(New case. Same desk.)',
-      '(Jules flips to a blank page.)',
-      '(The ashtray is emptied. Fresh start.)',
-      '(The board is wiped. The thread begins again.)',
-      '(A new reel loads. The projector hums.)',
-      '(Different case. Same trenchcoat.)'
-    ].freeze
-
-    INTERRUPT_PARENTHETICALS = [
-      '(Jules stubs out the cigarette. Waits.)',
-      '(A pause. Jules sets down the glass.)',
-      '(Jules stops mid-sentence. Listens.)',
-      '(The typing stops. Silence.)',
-      '(Jules looks up from the file.)',
-      '(A beat. The cursor holds steady.)',
-      '(Jules folds the hands. Patient.)'
-    ].freeze
-
-    FADE_OUT_TRANSITIONS = [
-      ['FADE TO BLACK.', 'THE END'],
-      ['IRIS OUT.', 'FIN'],
-      ['THE SCREEN GOES DARK.', 'END OF REEL'],
-      ['SLOW FADE.', 'THE END'],
-      ['CUT TO BLACK.', '— FINIS —'],
-      ['THE CURSOR BLINKS ONE LAST TIME.', 'THE END'],
-      ['FADE OUT.', 'FIN']
-    ].freeze
-
     def print_scene_cut
       puts
-      puts "#{COMMENT}#{SCENE_CUT_TRANSITIONS.sample}#{RESET}"
+      puts "#{COMMENT}#{Script::SCENE_CUT_TRANSITIONS.sample}#{RESET}"
       puts
-      puts "#{COMMENT}#{SCENE_CUT_HEADINGS.sample}#{RESET}"
+      puts "#{COMMENT}#{Script::SCENE_CUT_HEADINGS.sample}#{RESET}"
       puts
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{SCENE_CUT_PARENTHETICALS.sample}#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{Script::SCENE_CUT_PARENTHETICALS.sample}#{RESET}"
       puts
     end
 
     def print_interrupt
       puts
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{INTERRUPT_PARENTHETICALS.sample}#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{Script::INTERRUPT_PARENTHETICALS.sample}#{RESET}"
     end
 
     def print_fade_out
-      transition, title = FADE_OUT_TRANSITIONS.sample
+      transition, title = Script::FADE_OUT_TRANSITIONS.sample
       puts
       puts "#{COMMENT}#{transition}#{RESET}"
       puts

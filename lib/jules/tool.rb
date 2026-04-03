@@ -84,12 +84,16 @@ module Jules
       @known_tools.values
     end
 
-    def self.declarations(format:)
+    LOBOTOMIZED_TOOLS = %w[read write edit bash].freeze
+
+    def self.declarations(format:, only: nil)
+      tools = only ? all.select { |t| only.include?(t.tool_name) } : all
+
       case format
       when :gemini
-        all.map(&:as_gemini_declaration)
+        tools.map(&:as_gemini_declaration)
       when :openai
-        all.map(&:as_openai_declaration)
+        tools.map(&:as_openai_declaration)
       else
         raise "Unknown tool format: #{format}"
       end
