@@ -16,8 +16,12 @@ This repository contains the source code for Jules, a terminal-based AI assistan
 - Before implementing a new tool, review existing tool implementations for conventions and error handling (for example, `lib/jules/tools/edit_tool.rb`).
 - No LLM SDK gems: API communication should use Ruby standard library primitives (`net/http`, etc.).
 - Use minitest for tests and rubocop for linting.
-- Prefer readable, flow-oriented tests over implementation-detail tests.
-- Avoid global test state and unnecessary mocking.
+- Tests must verify observable behavior (return values, side effects, output), NOT internal implementation details like which methods were called, what arguments were passed to shell commands, or how code is structured internally.
+- Do NOT mock or stub unless absolutely necessary. If a tool shells out to `rg`, `git`, or another CLI tool that is available in the test environment, run it for real against temp files instead of stubbing `Open3.capture3`.
+- Never mock Ruby internals like `Kernel.rand`, `IO.console`, or `is_a?`.
+- Never assert on the exact command-line arguments passed to external tools — test the result, not the invocation.
+- If a test requires more than one level of stubbing/mocking, it is testing implementation details. Rewrite it or don't write it.
+- Avoid global test state.
 - After major changes, run:
   - `bundle exec rake test`
   - `bundle exec rubocop`

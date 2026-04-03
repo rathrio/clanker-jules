@@ -18,24 +18,6 @@ class GlobToolTest < Minitest::Test
     assert_match(/Error: path not found:/, result)
   end
 
-  def test_returns_sorted_relative_matches
-    Dir.mktmpdir do |dir|
-      tool = Jules::GlobTool.new
-      fake_stdout = "#{dir}/z.rb\n#{dir}/lib/a.rb\n"
-      fake_status = status(success: true, exitstatus: 0)
-
-      result = with_stubbed_singleton_method(
-        Open3,
-        :capture3,
-        ->(*_command) { [fake_stdout, '', fake_status] }
-      ) do
-        tool.call('pattern' => '**/*.rb', 'path' => dir)
-      end
-
-      assert_equal "lib/a.rb\nz.rb", result
-    end
-  end
-
   def test_returns_no_files_message_when_rg_exitstatus_is_one
     tool = Jules::GlobTool.new
     fake_status = status(success: false, exitstatus: 1)

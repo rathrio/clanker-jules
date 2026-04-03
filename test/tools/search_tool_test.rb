@@ -27,24 +27,6 @@ class SearchToolTest < Minitest::Test
     assert_match(/Error: invalid regex - /, result)
   end
 
-  def test_formats_successful_rg_results_relative_to_base_path
-    Dir.mktmpdir do |dir|
-      tool = Jules::SearchTool.new
-      fake_stdout = "#{dir}/lib/a.rb:3:1:puts :a\n#{dir}/lib/b.rb:5:1:puts :b\n"
-      fake_status = status(success: true, exitstatus: 0)
-
-      result = with_stubbed_singleton_method(
-        Open3,
-        :capture3,
-        ->(*_command) { [fake_stdout, '', fake_status] }
-      ) do
-        tool.call('query' => 'puts', 'path' => dir)
-      end
-
-      assert_equal "lib/a.rb:3:puts :a\nlib/b.rb:5:puts :b", result
-    end
-  end
-
   def test_returns_no_matches_message_when_rg_exitstatus_is_one
     tool = Jules::SearchTool.new
     fake_status = status(success: false, exitstatus: 1)

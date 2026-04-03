@@ -178,26 +178,4 @@ class FindCodeToolTest < Minitest::Test
       assert_includes result, '  def perform'
     end
   end
-
-  def test_uses_globs_flag_for_excludes
-    tool = Jules::FindCodeTool.new
-    fake_status = status(success: true, exitstatus: 0)
-    captured_command = nil
-
-    with_stubbed_singleton_method(
-      Open3,
-      :capture3,
-      lambda { |*command|
-        captured_command = command
-        ["{\"file\":\"foo.rb\",\"range\":{\"start\":{\"line\":1}},\"text\":\"x\"}\n", '', fake_status]
-      }
-    ) do
-      tool.call('pattern' => 'puts($A)')
-    end
-
-    refute_nil captured_command
-    refute_includes captured_command, '--glob'
-    assert_includes captured_command, '--globs'
-    assert_includes captured_command, '!**/.git/**'
-  end
 end
