@@ -80,4 +80,12 @@ class TerminalTest < Minitest::Test
 
     assert_nil command
   end
+
+  def test_spinner_scene_direction_uses_parenthetical_format
+    output = Jules::Terminal.spinner_scene_direction('Jules is clanking.', '⠋')
+
+    assert_includes output, '(Jules is clanking. '
+    assert_includes output, '⠋'
+    assert_includes output, ')'
+  end
 end

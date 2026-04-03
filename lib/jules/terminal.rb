@@ -353,7 +353,7 @@ module Jules
         spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
         i = 0
         loop do
-          print "\r\e[K#{COMMENT}#{label}#{RESET} #{PINK}#{spinner[i % spinner.length]}#{RESET}"
+          print spinner_scene_direction(label, spinner[i % spinner.length])
           sleep 0.1
           i += 1
         end
@@ -363,6 +363,10 @@ module Jules
     ensure
       spinner_thread&.kill
       print "\r\e[K"
+    end
+
+    def spinner_scene_direction(label, frame)
+      "\r\e[K#{COMMENT}#{PARENTHETICAL_INDENT}(#{label} #{PINK}#{frame}#{COMMENT})#{RESET}"
     end
   end
 end
