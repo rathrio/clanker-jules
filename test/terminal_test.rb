@@ -14,7 +14,7 @@ class TerminalTest < Minitest::Test
   def test_print_submit_hint_mentions_send_exit_and_fuzzy_mention_shortcuts
     output = capture_io { Jules::Terminal.print_submit_hint }.first
 
-    assert_includes output, '(send: ctrl+s / alt+enter, exit: ctrl+d, @: fuzzy file mention)'
+    assert_includes output, '(send: ctrl+s / alt+enter, exit: ctrl+d, @ to mention)'
   end
 
   def test_show_submit_hint_is_true_before_first_hint_is_shown

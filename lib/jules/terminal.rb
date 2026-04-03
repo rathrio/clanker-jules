@@ -58,7 +58,7 @@ module Jules
 
     def print_submit_hint
       Terminal.submit_hint_shown = true
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(send: ctrl+s / alt+enter, exit: ctrl+d, @: fuzzy file mention)#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(send: ctrl+s / alt+enter, exit: ctrl+d, @ to mention)#{RESET}"
     end
 
     # Wraps Reline's input IO to intercept Ctrl+S and Alt+Enter as submit signals.
@@ -333,10 +333,10 @@ module Jules
     end
 
     def print_assistant(text, elapsed: nil)
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{elapsed.round(1)} seconds pass)#{RESET}" if elapsed
       screenplay_heading('JULES', color: PURPLE)
       print_action_beat(Script::JULES_ACTION_BEATS)
       puts render_markdown(text)
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{elapsed.round(1)} seconds pass)#{RESET}" if elapsed
     end
 
     def print_scene_cut
