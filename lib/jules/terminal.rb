@@ -58,7 +58,7 @@ module Jules
 
     def print_submit_hint
       Terminal.submit_hint_shown = true
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(send: ctrl+s / alt+enter, exit: ctrl+d)#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(send: ctrl+s / alt+enter, exit: ctrl+d, @: fuzzy file mention)#{RESET}"
     end
 
     # Wraps Reline's input IO to intercept Ctrl+S and Alt+Enter as submit signals.
@@ -94,18 +94,25 @@ module Jules
         elsif byte == 0x40 && Terminal.mention_trigger_boundary?(Reline.line_buffer, Reline.point) # @
           mention = Terminal.pick_path_mention
           @injected_bytes.concat(mention.bytes) if mention
+          Reline.redisplay
           return @injected_bytes.shift unless @injected_bytes.empty?
 
-          return getbyte
-        elsif byte == 0x1B && @input.wait_readable(0.05) # ESC — check for Alt+Enter
-          next_byte = @input.getbyte
-          if [0x0D, 0x0A].include?(next_byte)
-            @submit_requested = true
-            return 0x0D
-          else
+          # If mention selection was canceled, fall back to inserting the literal '@'
+          # so the current buffer is immediately visible again.
+          return 0x40
+        elsif byte == 0x1B # ESC — treat only Alt+Enter specially; swallow lone ESC
+          if @input.wait_readable(0.05)
+            next_byte = @input.getbyte
+            if [0x0D, 0x0A].include?(next_byte)
+              @submit_requested = true
+              return 0x0D
+            end
+
             @pending_byte = next_byte
-            return 0x1B
+            return getbyte
           end
+
+          return getbyte
         end
 
         byte
@@ -212,8 +219,34 @@ module Jules
     end
 
     def run_fzf(candidates)
-      stdout, _stderr, status = Open3.capture3('fzf', stdin_data: candidates.join("\n"))
+      stdout, _stderr, status = Open3.capture3(
+        'fzf',
+        '--height', '40%',
+        '--layout', 'reverse',
+        '--border', 'none',
+        '--ansi',
+        '--prompt', 'evidence> ',
+        '--header', fzf_header,
+        '--header-first',
+        '--info', 'inline',
+        stdin_data: candidates.join("\n")
+      )
       [stdout.to_s.strip, status]
+    end
+
+    def fzf_header
+      stage_direction = [
+        "#{USERNAME} pokes through the night desk files.",
+        "#{USERNAME} rifles the cold-case archive for a name.",
+        "#{USERNAME} thumbs through evidence folders under a flickering lamp.",
+        "#{USERNAME} drags a finger down the index cards, hunting the right path.",
+        "#{USERNAME} cracks open the evidence locker and scans the labels."
+      ].sample
+
+      # fzf renders headers with a small left gutter, so we offset by two spaces
+      # to visually align with screenplay parentheticals.
+      fzf_header_indent = ' ' * [PARENTHETICAL_INDENT.length - 2, 0].max
+      "\n#{COMMENT}#{fzf_header_indent}(#{stage_direction} [2mhit enter to tag it.[22m)#{RESET}"
     end
 
     def fzf_available?
@@ -250,6 +283,7 @@ module Jules
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}  alt+enter      — send message#{RESET}"
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+c         — interrupt current action#{RESET}"
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+d         — exit#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  @              — fuzzy-find file mention (Esc keeps a literal @)#{RESET}"
       puts
     end
 

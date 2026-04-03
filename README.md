@@ -18,7 +18,7 @@ to where it is now.
 Jules shells out to several CLI tools. Install these first:
 
 ```bash
-brew install ruby glow ripgrep ast-grep
+brew install ruby glow ripgrep ast-grep fzf
 ```
 
 Notes:

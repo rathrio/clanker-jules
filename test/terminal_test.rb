@@ -11,10 +11,10 @@ class TerminalTest < Minitest::Test
     Jules::Terminal.submit_hint_shown = false
   end
 
-  def test_print_submit_hint_mentions_send_and_exit_shortcuts
+  def test_print_submit_hint_mentions_send_exit_and_fuzzy_mention_shortcuts
     output = capture_io { Jules::Terminal.print_submit_hint }.first
 
-    assert_includes output, '(send: ctrl+s / alt+enter, exit: ctrl+d)'
+    assert_includes output, '(send: ctrl+s / alt+enter, exit: ctrl+d, @: fuzzy file mention)'
   end
 
   def test_show_submit_hint_is_true_before_first_hint_is_shown
@@ -67,6 +67,12 @@ class TerminalTest < Minitest::Test
     line_count = output.lines.count { |line| line.include?('line ') }
 
     assert_equal 3, line_count
+  end
+
+  def test_print_help_mentions_fuzzy_find_shortcut
+    output = capture_io { Jules::Terminal.print_help }.first
+
+    assert_includes output, '@              — fuzzy-find file mention (Esc keeps a literal @)'
   end
 
   def test_parse_slash_command_recognizes_known_skill_name
