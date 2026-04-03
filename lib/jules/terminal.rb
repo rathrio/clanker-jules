@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'etc'
 require 'reline'
 require 'io/console'
 require 'io/wait'
@@ -22,6 +23,8 @@ module Jules
     SCREENPLAY_INDENT    = ' ' * 16
     PARENTHETICAL_INDENT = ' ' * 10
     DIALOGUE_INDENT      = '  '
+
+    USERNAME = (Etc.getlogin || ENV['USER'] || 'YOU').upcase.freeze
 
     module_function
 
@@ -115,7 +118,7 @@ module Jules
     end
 
     def read_input
-      screenplay_heading('YOU')
+      screenplay_heading(USERNAME)
       if show_submit_hint?
         print_submit_hint
       else

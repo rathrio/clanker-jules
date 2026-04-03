@@ -120,36 +120,55 @@ module Jules
       'laundering complexity into false simplicity'
     ].freeze
 
-    YOU_ACTION_BEATS = [
+    COMMON_ACTION_BEATS = [
       'lights a cigarette',
-      'leans into the light',
-      'slides the envelope across the table',
-      'checks the exits',
-      'loosens the collar',
-      'drums fingers on the desk',
-      'stares at the ceiling',
       'exhales slowly',
-      'pours two fingers of rye',
       'squints through the smoke',
+      'takes a long drag',
+      'taps ash into the tray',
+      'stares at the ceiling',
+      'pours another glass',
+      'watches the door',
+      'checks the exits',
       'glances over one shoulder',
-      'sets down the glass'
+      'says nothing for a moment'
     ].freeze
 
-    JULES_ACTION_BEATS = [
-      'lights a cigarette',
+    YOU_ACTION_BEATS = (COMMON_ACTION_BEATS + [
+      'leans into the light',
+      'slides the envelope across the table',
+      'loosens the collar',
+      'drums fingers on the desk',
+      'pours two fingers of rye',
+      'sets down the glass',
+      'folds arms across the chest',
+      'shifts in the chair',
+      'flips open the folder',
+      'pinches the bridge of the nose',
+      'rolls up the sleeves',
+      'rests both hands on the desk',
+      'clears the throat',
+      'pushes back from the table',
+      'turns the photo face-down'
+    ]).freeze
+
+    JULES_ACTION_BEATS = (COMMON_ACTION_BEATS + [
       'adjusts the fedora',
       'stares into the middle distance',
-      'takes a long drag',
       'leans back in the chair',
       'gazes at the rain-slicked glass',
-      'taps ash into the tray',
       'studies the ceiling fan',
       'straightens the tie',
       'runs a hand over the stubble',
-      'pours another glass',
-      'watches the door',
-      'cracks the knuckles'
-    ].freeze
+      'cracks the knuckles',
+      'tilts the hat forward',
+      'flicks the lighter open and shut',
+      'pulls the collar up',
+      'traces a finger along the desk',
+      'narrows the eyes',
+      'turns to face the window',
+      'slides a toothpick to the corner of the mouth'
+    ]).freeze
 
     MODEL_SWITCH_LINES = [
       proc { |pm| "Jules steps into the back room. Returns wearing #{pm}.\nSame trenchcoat. Different caliber." },
