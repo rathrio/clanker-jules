@@ -59,4 +59,16 @@ class GeminiProviderTest < Minitest::Test
     assert_equal :tool_calls, result.value[:type]
     assert_equal [{ name: 'search', args: { 'query' => 'foo' }, id: nil }], result.value[:data]
   end
+
+  def test_initialize_strips_models_prefix
+    provider = Jules::GeminiProvider.new(model: 'models/gemini-2.5-pro')
+
+    assert_equal 'gemini-2.5-pro', provider.model
+  end
+
+  def test_model_setter_strips_models_prefix
+    @provider.model = 'models/gemini-2.5-pro'
+
+    assert_equal 'gemini-2.5-pro', @provider.model
+  end
 end

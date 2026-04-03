@@ -15,10 +15,14 @@ module Jules
 
     def initialize(model: nil)
       @api_key = ENV.fetch('GOOGLE_GENERATIVE_AI_API_KEY')
-      @model = model || DEFAULT_MODEL
+      self.model = model || DEFAULT_MODEL
     end
 
-    attr_accessor :model
+    attr_reader :model
+
+    def model=(value)
+      @model = normalize_model_id(value)
+    end
 
     def tool_format
       :gemini
@@ -153,6 +157,14 @@ module Jules
         message: "Gemini network error: #{e.class} - #{e.message}",
         detail: { provider: provider_label, error_class: e.class.to_s }
       )
+    end
+
+    private
+
+    def normalize_model_id(value)
+      model_id = value.to_s.strip
+      model_id = model_id.sub(%r{\Amodels/}, '')
+      model_id.empty? ? DEFAULT_MODEL : model_id
     end
   end
 end
