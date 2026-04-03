@@ -25,6 +25,7 @@ module Jules
         @messages << Jules::Message.new('user', [{ text: input }])
 
         process_model_turn
+        Jules::Notification.notify_idle
       rescue Interrupt
         @terminal.print_interrupt
       end
@@ -50,12 +51,14 @@ module Jules
 
         if response_result.err?
           @terminal.print_error(response_result.message)
+          Jules::Notification.notify_crash(response_result.message)
           break
         end
 
         parsed_result = @provider.parse_response(response_result.value)
         if parsed_result.err?
           @terminal.print_error(parsed_result.message, raw: response_result.value.inspect)
+          Jules::Notification.notify_crash(parsed_result.message)
           break
         end
 
@@ -72,6 +75,7 @@ module Jules
           append_tool_results(parsed_response[:data])
         else
           @terminal.print_error('Unknown parsed response type', raw: parsed_response.inspect)
+          Jules::Notification.notify_crash('Unknown parsed response type')
           break
         end
       end
