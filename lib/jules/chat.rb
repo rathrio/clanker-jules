@@ -24,8 +24,10 @@ module Jules
         ensure_session_started
         @messages << Jules::Message.new('user', [{ text: input }])
 
+        started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         process_model_turn
-        Jules::Notification.notify_idle
+        elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at
+        Jules::Notification.notify_idle if elapsed >= 10
       rescue Interrupt
         @terminal.print_interrupt
       end
