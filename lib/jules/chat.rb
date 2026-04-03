@@ -10,10 +10,12 @@ module Jules
       @terminal = terminal
       @messages = []
       @session_started_at = nil
+      @provider_models_cache = :unset
     end
 
     def run
       install_exit_handler
+      install_terminal_slash_models_provider
 
       loop do
         input = @terminal.read_input
@@ -37,6 +39,10 @@ module Jules
 
     def install_exit_handler
       at_exit { flush_chat_log }
+    end
+
+    def install_terminal_slash_models_provider
+      @terminal.slash_model_names_provider = -> { list_provider_models_cached }
     end
 
     def ensure_session_started
@@ -152,7 +158,7 @@ module Jules
         @provider.model = value
         @terminal.print_model_switch(@provider.provider_label, @provider.model)
       else
-        @terminal.print_model_usage(models: list_provider_models)
+        @terminal.print_model_usage(models: list_provider_models_cached)
       end
 
       true
@@ -183,6 +189,12 @@ module Jules
       end
     rescue NotImplementedError
       nil
+    end
+
+    def list_provider_models_cached
+      return @provider_models_cache unless @provider_models_cache == :unset
+
+      @provider_models_cache = list_provider_models
     end
 
     def flush_chat_log

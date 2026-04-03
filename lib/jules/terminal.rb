@@ -49,8 +49,10 @@ module Jules
     @submit_hint_shown = false
 
     class << self
-      attr_accessor :submit_hint_shown
+      attr_accessor :submit_hint_shown, :slash_model_names_provider
     end
+
+    FZF_INSTALL_MESSAGE = 'Install fzf to use @ path mentions: https://github.com/junegunn/fzf'
 
     def show_submit_hint?
       !Terminal.submit_hint_shown || Kernel.rand < SUBMIT_HINT_REPEAT_CHANCE
@@ -58,7 +60,7 @@ module Jules
 
     def print_submit_hint
       Terminal.submit_hint_shown = true
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(send: ctrl+s / alt+enter, exit: ctrl+d, @ to mention)#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(send: ctrl+s / alt+enter, exit: ctrl+d)#{RESET}"
     end
 
     # Wraps Reline's input IO to intercept Ctrl+S and Alt+Enter as submit signals.
@@ -100,6 +102,17 @@ module Jules
           # If mention selection was canceled, fall back to inserting the literal '@'
           # so the current buffer is immediately visible again.
           return 0x40
+        elsif byte == 0x2F && Terminal.slash_trigger_boundary?(Reline.line_buffer, Reline.point) # /
+          # If another byte is immediately available, treat this as pasted text and skip picker.
+          return 0x2F if @input.wait_readable(0)
+
+          command = Terminal.pick_slash_command
+          @injected_bytes.concat(command.bytes) if command
+          Reline.redisplay
+          return @injected_bytes.shift unless @injected_bytes.empty?
+
+          # If command selection was canceled, fall back to inserting literal '/'.
+          return 0x2F
         elsif byte == 0x1B # ESC — treat only Alt+Enter specially; swallow lone ESC
           if @input.wait_readable(0.05)
             next_byte = @input.getbyte
@@ -175,9 +188,13 @@ module Jules
       !previous_char.match?(/[[:alnum:]_.%+-]/)
     end
 
+    def slash_trigger_boundary?(line_buffer, cursor_point)
+      mention_trigger_boundary?(line_buffer, cursor_point)
+    end
+
     def pick_path_mention
       unless fzf_available?
-        print_info('Install fzf to use @ path mentions: https://github.com/junegunn/fzf')
+        print_info(FZF_INSTALL_MESSAGE)
         return nil
       end
 
@@ -188,10 +205,10 @@ module Jules
       return "@#{selection}" if status.success? && !selection.empty?
       return nil if [1, 130].include?(status.exitstatus)
 
-      print_info('Install fzf to use @ path mentions: https://github.com/junegunn/fzf')
+      print_info(FZF_INSTALL_MESSAGE)
       nil
     rescue Errno::ENOENT
-      print_info('Install fzf to use @ path mentions: https://github.com/junegunn/fzf')
+      print_info(FZF_INSTALL_MESSAGE)
       nil
     end
 
@@ -218,20 +235,44 @@ module Jules
       []
     end
 
-    def run_fzf(candidates)
+    def run_fzf(candidates, prompt: 'evidence> ', header: fzf_header)
       stdout, _stderr, status = Open3.capture3(
         'fzf',
         '--height', '40%',
         '--layout', 'reverse',
         '--border', 'none',
         '--ansi',
-        '--prompt', 'evidence> ',
-        '--header', fzf_header,
+        '--prompt', prompt,
+        '--header', header,
         '--header-first',
         '--info', 'inline',
         stdin_data: candidates.join("\n")
       )
       [stdout.to_s.strip, status]
+    end
+
+    def run_fzf_with_values(candidates, prompt:, header:, initial_query: nil)
+      lines = candidates.map { |item| "#{item[:value]}\t#{item[:label]}" }
+      command = [
+        'fzf',
+        '--height', '40%',
+        '--layout', 'reverse',
+        '--border', 'none',
+        '--ansi',
+        '--prompt', prompt,
+        '--header', header,
+        '--header-first',
+        '--info', 'inline',
+        '--delimiter', "\t",
+        '--with-nth', '2..'
+      ]
+      command += ['--query', initial_query] if initial_query
+
+      stdout, _stderr, status = Open3.capture3(*command, stdin_data: lines.join("\n"))
+
+      selected_line = stdout.to_s.strip
+      selected_value = selected_line.split("\t", 2).first.to_s
+      [selected_value, status]
     end
 
     def fzf_header
@@ -249,8 +290,75 @@ module Jules
       "\n#{COMMENT}#{fzf_header_indent}(#{stage_direction} [2mhit enter to tag it.[22m)#{RESET}"
     end
 
+    def slash_fzf_header
+      stage_direction = [
+        "#{USERNAME} flips to the command index.",
+        "#{USERNAME} scans the slash-command roster.",
+        "#{USERNAME} runs a finger down the shortcut ledger.",
+        "#{USERNAME} checks the switchboard for the right command."
+      ].sample
+
+      fzf_header_indent = ' ' * [PARENTHETICAL_INDENT.length - 2, 0].max
+      "\n#{COMMENT}#{fzf_header_indent}(#{stage_direction} [2mhit enter to run it.[22m)#{RESET}"
+    end
+
     def fzf_available?
       system('command -v fzf > /dev/null 2>&1')
+    end
+
+    def pick_slash_command
+      unless fzf_available?
+        print_info(FZF_INSTALL_MESSAGE)
+        return nil
+      end
+
+      candidates = slash_command_candidates(model_names: safe_slash_model_names)
+      return nil if candidates.empty?
+
+      selection, status = run_fzf_with_values(
+        candidates,
+        prompt: 'command> ',
+        header: slash_fzf_header,
+        initial_query: '/'
+      )
+      return selection if status.success? && !selection.empty?
+      return nil if [1, 130].include?(status.exitstatus)
+
+      print_info(FZF_INSTALL_MESSAGE)
+      nil
+    rescue Errno::ENOENT
+      print_info(FZF_INSTALL_MESSAGE)
+      nil
+    end
+
+    def safe_slash_model_names
+      provider = Terminal.slash_model_names_provider
+      return nil unless provider
+
+      provider.call
+    rescue StandardError
+      nil
+    end
+
+    def slash_command_candidates(model_names: nil, skill_names: Jules::Skill.all.keys)
+      builtins = [
+        { value: '/help', label: '/help' },
+        { value: '/clear', label: '/clear' },
+        { value: '/new', label: '/new' },
+        { value: '/model', label: '/model' }
+      ]
+
+      skills = skill_names.sort.map do |name|
+        command = "/#{name}"
+        { value: command, label: command }
+      end
+
+      models = Array(model_names).map do |name|
+        command = "/model #{name}"
+        { value: command, label: command }
+      end
+
+      builtins + skills + models
     end
 
     def parse_slash_command(input, skill_names: [])
@@ -284,6 +392,7 @@ module Jules
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+c         — interrupt current action#{RESET}"
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+d         — exit#{RESET}"
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}  @              — fuzzy-find file mention (Esc keeps a literal @)#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  /              — fuzzy command picker (Esc keeps a literal /)#{RESET}"
       puts
     end
 

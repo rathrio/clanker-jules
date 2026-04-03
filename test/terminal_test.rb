@@ -5,16 +5,12 @@ require_relative 'test_helper'
 class TerminalTest < Minitest::Test
   def setup
     Jules::Terminal.submit_hint_shown = false
+    Jules::Terminal.slash_model_names_provider = nil
   end
 
   def teardown
     Jules::Terminal.submit_hint_shown = false
-  end
-
-  def test_print_submit_hint_mentions_send_exit_and_fuzzy_mention_shortcuts
-    output = capture_io { Jules::Terminal.print_submit_hint }.first
-
-    assert_includes output, '(send: ctrl+s / alt+enter, exit: ctrl+d, @ to mention)'
+    Jules::Terminal.slash_model_names_provider = nil
   end
 
   def test_show_submit_hint_is_true_before_first_hint_is_shown
@@ -73,6 +69,7 @@ class TerminalTest < Minitest::Test
     output = capture_io { Jules::Terminal.print_help }.first
 
     assert_includes output, '@              — fuzzy-find file mention (Esc keeps a literal @)'
+    assert_includes output, '/              — fuzzy command picker (Esc keeps a literal /)'
   end
 
   def test_parse_slash_command_recognizes_known_skill_name
@@ -148,6 +145,64 @@ class TerminalTest < Minitest::Test
         assert_includes candidates, '.hidden'
         assert_includes candidates, '.hidden/deep'
         assert_includes candidates, '.hidden/deep/file.txt'
+      end
+    end
+  end
+
+  def test_slash_command_candidates_include_builtins_skills_and_models
+    candidates = Jules::Terminal.slash_command_candidates(
+      skill_names: %w[obsidian memory],
+      model_names: ['gpt-4o-mini']
+    )
+
+    values = candidates.map { |item| item[:value] }
+    labels = candidates.map { |item| item[:label] }
+
+    assert_includes values, '/help'
+    assert_includes values, '/clear'
+    assert_includes values, '/new'
+    assert_includes values, '/model'
+    assert_includes values, '/memory'
+    assert_includes values, '/obsidian'
+    assert_includes values, '/model gpt-4o-mini'
+
+    assert_includes labels, '/help'
+    assert_includes labels, '/obsidian'
+    assert_includes labels, '/model gpt-4o-mini'
+  end
+
+  def test_safe_slash_model_names_returns_nil_when_provider_raises
+    Jules::Terminal.slash_model_names_provider = -> { raise 'no models' }
+
+    assert_nil Jules::Terminal.safe_slash_model_names
+  end
+
+  def test_slash_trigger_boundary_matches_mention_boundary_behavior
+    assert Jules::Terminal.slash_trigger_boundary?('', 0)
+    refute Jules::Terminal.slash_trigger_boundary?('/mo', 3)
+    assert Jules::Terminal.slash_trigger_boundary?('hello ', 6)
+  end
+
+  def test_slash_command_candidates_without_models_still_include_non_model_commands
+    candidates = Jules::Terminal.slash_command_candidates(skill_names: ['obsidian'], model_names: nil)
+    values = candidates.map { |item| item[:value] }
+
+    assert_includes values, '/help'
+    assert_includes values, '/obsidian'
+    refute_includes values, '/model gpt-4o-mini'
+  end
+
+  def test_input_interceptor_inserts_literal_slash_when_picker_canceled
+    bytes = [0x2F]
+    fake_input = Object.new
+    fake_input.define_singleton_method(:getbyte) { bytes.shift }
+    fake_input.define_singleton_method(:wait_readable) { |_timeout = nil| false }
+
+    interceptor = Jules::Terminal::InputInterceptor.new(fake_input)
+
+    with_stubbed_singleton_method(Jules::Terminal, :pick_slash_command, -> {}) do
+      with_stubbed_singleton_method(Reline, :redisplay, -> {}) do
+        assert_equal 0x2F, interceptor.getbyte
       end
     end
   end
