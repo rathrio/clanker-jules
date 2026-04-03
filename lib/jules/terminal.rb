@@ -94,6 +94,9 @@ module Jules
           @submit_requested = true
           return 0x0D
         elsif byte == 0x40 && Terminal.mention_trigger_boundary?(Reline.line_buffer, Reline.point) # @
+          # If another byte is immediately available, treat this as pasted text and skip picker.
+          return 0x40 if @input.wait_readable(0)
+
           mention = Terminal.pick_path_mention
           @injected_bytes.concat(mention.bytes) if mention
           Reline.redisplay
@@ -185,11 +188,11 @@ module Jules
       previous_char = prefix[-1]
       return true if previous_char.nil?
 
-      !previous_char.match?(/[[:alnum:]_.%+-]/)
+      previous_char.match?(/[[:space:]]/)
     end
 
-    def slash_trigger_boundary?(line_buffer, cursor_point)
-      mention_trigger_boundary?(line_buffer, cursor_point)
+    def slash_trigger_boundary?(_line_buffer, cursor_point)
+      cursor_point.to_i <= 0
     end
 
     def pick_path_mention

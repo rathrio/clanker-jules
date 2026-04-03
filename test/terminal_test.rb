@@ -101,9 +101,14 @@ class TerminalTest < Minitest::Test
     refute Jules::Terminal.mention_trigger_boundary?('first.last', 10)
   end
 
-  def test_mention_trigger_boundary_is_true_after_whitespace_or_punctuation
+  def test_mention_trigger_boundary_is_true_after_whitespace
     assert Jules::Terminal.mention_trigger_boundary?('hello ', 6)
-    assert Jules::Terminal.mention_trigger_boundary?('hello(', 6)
+  end
+
+  def test_mention_trigger_boundary_is_false_after_non_whitespace
+    refute Jules::Terminal.mention_trigger_boundary?('hello(', 6)
+    refute Jules::Terminal.mention_trigger_boundary?('hello.', 6)
+    refute Jules::Terminal.mention_trigger_boundary?('hello@', 6)
   end
 
   def test_rg_file_candidates_respects_gitignore_and_includes_hidden_files
@@ -177,10 +182,11 @@ class TerminalTest < Minitest::Test
     assert_nil Jules::Terminal.safe_slash_model_names
   end
 
-  def test_slash_trigger_boundary_matches_mention_boundary_behavior
+  def test_slash_trigger_boundary_is_true_at_start_and_false_elsewhere
     assert Jules::Terminal.slash_trigger_boundary?('', 0)
     refute Jules::Terminal.slash_trigger_boundary?('/mo', 3)
-    assert Jules::Terminal.slash_trigger_boundary?('hello ', 6)
+    refute Jules::Terminal.slash_trigger_boundary?('hello ', 6)
+    refute Jules::Terminal.slash_trigger_boundary?('/ ', 2)
   end
 
   def test_slash_command_candidates_without_models_still_include_non_model_commands
