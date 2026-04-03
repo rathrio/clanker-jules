@@ -148,12 +148,37 @@ module Jules
       Reline.input = $stdin
     end
 
-    def parse_slash_command(input)
+    def parse_slash_command(input, skill_names: [])
       case input
       when '/clear', '/new' then :clear
+      when '/help' then :help
       when %r{^/model\s+(.+)}i then [:model, Regexp.last_match(1).strip]
       when '/model' then [:model, nil]
+      when %r{^/([^\s]+)$}
+        command = Regexp.last_match(1)
+        [:skill, command] if skill_names.include?(command)
       end
+    end
+
+    def print_help(skill_names: [])
+      puts
+      puts "#{CYAN}#{BOLD}#{PARENTHETICAL_INDENT}Slash Commands#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  /help          — show this help#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  /clear, /new   — clear conversation and start fresh#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  /model         — list available models#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  /model <name>  — switch to a different model#{RESET}"
+      if skill_names.any?
+        skill_names.each do |name|
+          puts "#{COMMENT}#{PARENTHETICAL_INDENT}  /#{name}#{RESET}"
+        end
+      end
+      puts
+      puts "#{CYAN}#{BOLD}#{PARENTHETICAL_INDENT}Keyboard Shortcuts#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+s         — send message#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  alt+enter      — send message#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+c         — interrupt current action#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+d         — exit#{RESET}"
+      puts
     end
 
     def print_model_switch(provider_label, model)

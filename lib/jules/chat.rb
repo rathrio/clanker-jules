@@ -116,28 +116,54 @@ module Jules
     end
 
     def handle_slash_command?(input)
-      case @terminal.parse_slash_command(input)
+      command = @terminal.parse_slash_command(input, skill_names: Jules::Skill.all.keys)
+
+      case command
       when :clear
         @messages.clear
         @session_started_at = nil
         @terminal.print_scene_cut
         true
+      when :help
+        @terminal.print_help(skill_names: Jules::Skill.all.keys)
+        true
       when Array
-        handle_model_command?(input)
+        handle_structured_slash_command?(command)
       else
         false
       end
     end
 
-    def handle_model_command?(input)
-      command, value = @terminal.parse_slash_command(input)
-      return false unless command == :model
+    def handle_structured_slash_command?(command)
+      action, value = command
 
+      case action
+      when :model
+        handle_model_command?(value)
+      when :skill
+        handle_skill_command?(value)
+      else
+        false
+      end
+    end
+
+    def handle_model_command?(value)
       if value
         @provider.model = value
         @terminal.print_model_switch(@provider.provider_label, @provider.model)
       else
         @terminal.print_model_usage(models: list_provider_models)
+      end
+
+      true
+    end
+
+    def handle_skill_command?(skill_name)
+      skill = Jules::Skill.find(skill_name)
+      if skill
+        @terminal.print_assistant(skill.content)
+      else
+        @terminal.print_error("Skill not found: #{skill_name}")
       end
 
       true

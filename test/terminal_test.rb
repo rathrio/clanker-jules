@@ -68,4 +68,16 @@ class TerminalTest < Minitest::Test
 
     assert_equal 3, line_count
   end
+
+  def test_parse_slash_command_recognizes_known_skill_name
+    command = Jules::Terminal.parse_slash_command('/obsidian', skill_names: ['obsidian'])
+
+    assert_equal [:skill, 'obsidian'], command
+  end
+
+  def test_parse_slash_command_ignores_unknown_skill_name
+    command = Jules::Terminal.parse_slash_command('/unknown', skill_names: ['obsidian'])
+
+    assert_nil command
+  end
 end
