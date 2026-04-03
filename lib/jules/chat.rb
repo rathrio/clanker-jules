@@ -29,6 +29,7 @@ module Jules
         Jules::Notification.notify_idle if elapsed >= 10
       rescue Interrupt
         @terminal.print_interrupt
+        @terminal.submit_hint_shown = false if input.to_s.strip.empty?
       end
     end
 
