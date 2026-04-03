@@ -69,6 +69,7 @@ module Jules
         @input = input
         @submit_requested = false
         @pending_byte = nil
+        @injected_bytes = []
       end
 
       def reset_submit
@@ -76,6 +77,8 @@ module Jules
       end
 
       def getbyte
+        return @injected_bytes.shift unless @injected_bytes.empty?
+
         if @pending_byte
           byte = @pending_byte
           @pending_byte = nil
@@ -88,6 +91,12 @@ module Jules
         if byte == 0x13 # Ctrl+S
           @submit_requested = true
           return 0x0D
+        elsif byte == 0x40 && Terminal.mention_trigger_boundary?(Reline.line_buffer, Reline.point) # @
+          mention = Terminal.pick_path_mention
+          @injected_bytes.concat(mention.bytes) if mention
+          return @injected_bytes.shift unless @injected_bytes.empty?
+
+          return getbyte
         elsif byte == 0x1B && @input.wait_readable(0.05) # ESC — check for Alt+Enter
           next_byte = @input.getbyte
           if [0x0D, 0x0A].include?(next_byte)
@@ -103,6 +112,7 @@ module Jules
       end
 
       def wait_readable(timeout = nil)
+        return true if @injected_bytes.any?
         return true if @pending_byte
 
         @input.wait_readable(timeout)
@@ -146,6 +156,68 @@ module Jules
       input.strip
     ensure
       Reline.input = $stdin
+    end
+
+    def mention_trigger_boundary?(line_buffer, cursor_point)
+      return true if cursor_point.to_i <= 0
+
+      prefix = line_buffer.to_s[0...cursor_point]
+      previous_char = prefix[-1]
+      return true if previous_char.nil?
+
+      !previous_char.match?(/[[:alnum:]_.%+-]/)
+    end
+
+    def pick_path_mention
+      unless fzf_available?
+        print_info('Install fzf to use @ path mentions: https://github.com/junegunn/fzf')
+        return nil
+      end
+
+      candidates = mention_candidates
+      return nil if candidates.empty?
+
+      selection, status = run_fzf(candidates)
+      return "@#{selection}" if status.success? && !selection.empty?
+      return nil if [1, 130].include?(status.exitstatus)
+
+      print_info('Install fzf to use @ path mentions: https://github.com/junegunn/fzf')
+      nil
+    rescue Errno::ENOENT
+      print_info('Install fzf to use @ path mentions: https://github.com/junegunn/fzf')
+      nil
+    end
+
+    def mention_candidates
+      files = rg_file_candidates
+      return [] if files.empty?
+
+      dirs = files.flat_map do |path|
+        parts = path.split('/')
+        next [] if parts.length <= 1
+
+        (1...parts.length).map { |i| parts[0...i].join('/') }
+      end
+
+      (files + dirs).uniq.sort
+    end
+
+    def rg_file_candidates
+      stdout, _stderr, status = Open3.capture3('rg', '--files', '--hidden', '--glob', '!.git')
+      return [] unless status.success?
+
+      stdout.lines.map(&:strip).reject(&:empty?)
+    rescue Errno::ENOENT
+      []
+    end
+
+    def run_fzf(candidates)
+      stdout, _stderr, status = Open3.capture3('fzf', stdin_data: candidates.join("\n"))
+      [stdout.to_s.strip, status]
+    end
+
+    def fzf_available?
+      system('command -v fzf > /dev/null 2>&1')
     end
 
     def parse_slash_command(input, skill_names: [])

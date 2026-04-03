@@ -88,4 +88,61 @@ class TerminalTest < Minitest::Test
     assert_includes output, '⠋'
     assert_includes output, ')'
   end
+
+  def test_mention_trigger_boundary_is_true_at_line_start
+    assert Jules::Terminal.mention_trigger_boundary?('', 0)
+  end
+
+  def test_mention_trigger_boundary_is_false_after_word_characters
+    refute Jules::Terminal.mention_trigger_boundary?('email', 5)
+    refute Jules::Terminal.mention_trigger_boundary?('first.last', 10)
+  end
+
+  def test_mention_trigger_boundary_is_true_after_whitespace_or_punctuation
+    assert Jules::Terminal.mention_trigger_boundary?('hello ', 6)
+    assert Jules::Terminal.mention_trigger_boundary?('hello(', 6)
+  end
+
+  def test_rg_file_candidates_respects_gitignore_and_includes_hidden_files
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, '.gitignore'), "ignored.txt\nignored_dir/\n")
+      File.write(File.join(dir, 'visible.txt'), 'ok')
+      File.write(File.join(dir, '.hidden.txt'), 'ok')
+      File.write(File.join(dir, 'ignored.txt'), 'nope')
+      FileUtils.mkdir_p(File.join(dir, 'ignored_dir'))
+      File.write(File.join(dir, 'ignored_dir', 'inside.txt'), 'nope')
+      FileUtils.mkdir_p(File.join(dir, '.git'))
+      File.write(File.join(dir, '.git', 'config'), 'nope')
+
+      Dir.chdir(dir) do
+        candidates = Jules::Terminal.rg_file_candidates
+
+        assert_includes candidates, 'visible.txt'
+        assert_includes candidates, '.hidden.txt'
+        refute_includes candidates, 'ignored.txt'
+        refute_includes candidates, 'ignored_dir/inside.txt'
+        refute_includes candidates, '.git/config'
+      end
+    end
+  end
+
+  def test_mention_candidates_include_files_and_directories
+    Dir.mktmpdir do |dir|
+      FileUtils.mkdir_p(File.join(dir, 'app/models'))
+      FileUtils.mkdir_p(File.join(dir, '.hidden/deep'))
+      File.write(File.join(dir, 'app/models/user.rb'), 'class User; end')
+      File.write(File.join(dir, '.hidden/deep/file.txt'), 'x')
+
+      Dir.chdir(dir) do
+        candidates = Jules::Terminal.mention_candidates
+
+        assert_includes candidates, 'app'
+        assert_includes candidates, 'app/models'
+        assert_includes candidates, 'app/models/user.rb'
+        assert_includes candidates, '.hidden'
+        assert_includes candidates, '.hidden/deep'
+        assert_includes candidates, '.hidden/deep/file.txt'
+      end
+    end
+  end
 end
