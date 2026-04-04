@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'fileutils'
+
 module Jules
   class Chat
     def initialize(provider:, tools:, system_prompt:, chats_dir:, terminal: Jules::Terminal)
@@ -21,6 +23,7 @@ module Jules
         input = @terminal.read_input
         next if input.empty?
 
+        tee_user_input(input)
         next if handle_slash_command?(input)
 
         ensure_session_started
@@ -49,6 +52,11 @@ module Jules
       return if @session_started_at
 
       @session_started_at = Time.now.strftime('%Y-%m-%dT%H%M%S%Z')
+      @session_dir = File.join(@chats_dir, @session_started_at)
+      FileUtils.mkdir_p(@session_dir)
+      @screenplay_io = File.open(File.join(@session_dir, 'screenplay.txt'), 'a')
+      @terminal.screenplay_io = @screenplay_io
+      @terminal.flush_screenplay_buffer
     end
 
     def process_model_turn(started_at)
@@ -122,9 +130,13 @@ module Jules
 
       case command
       when :clear
+        @terminal.print_scene_cut
+        @screenplay_io&.close
+        @terminal.screenplay_io = nil
+        @screenplay_io = nil
         @messages.clear
         @session_started_at = nil
-        @terminal.print_scene_cut
+        @session_dir = nil
         true
       when :help
         @terminal.print_help(skill_names: Jules::Skill.all.keys)
@@ -193,13 +205,26 @@ module Jules
       @provider_models_cache = list_provider_models
     end
 
+    def tee_user_input(input)
+      text = input.each_line.map do |line|
+        "#{Jules::Terminal::DIALOGUE_INDENT}#{line.chomp}\n"
+      end.join
+
+      @terminal.tee(text)
+    end
+
     def flush_chat_log
       return unless @session_started_at && !@messages.empty?
 
-      log_file = File.join(@chats_dir, "#{@session_started_at}.json")
+      session_dir = @session_dir || File.join(@chats_dir, @session_started_at)
+      FileUtils.mkdir_p(session_dir)
+      log_file = File.join(session_dir, 'log.json')
       File.write(log_file, Jules::Message.format_history(@messages, format: :gemini).to_json)
     rescue StandardError => e
       warn "Failed to save chat log: #{e.message}"
+    ensure
+      @screenplay_io&.close
+      @terminal.screenplay_io = nil
     end
   end
 end

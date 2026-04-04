@@ -29,6 +29,29 @@ module Jules
 
     module_function
 
+    def tee(text)
+      io = Terminal.screenplay_io
+      if io
+        io.write(text)
+        io.flush
+      elsif Terminal.screenplay_buffer
+        Terminal.screenplay_buffer << text
+      end
+    end
+
+    def start_screenplay_buffer
+      Terminal.screenplay_buffer = +''
+    end
+
+    def flush_screenplay_buffer
+      io = Terminal.screenplay_io
+      return unless io && Terminal.screenplay_buffer
+
+      io.write(Terminal.screenplay_buffer)
+      io.flush
+      Terminal.screenplay_buffer = nil
+    end
+
     def spinner_label
       take = rand < 0.6 ? 'clanking' : Script::CYNICAL_SPINNER_TAKES.sample
       "Jules is #{take}."
@@ -37,12 +60,15 @@ module Jules
     def print_action_beat(beats)
       return unless rand < 0.3
 
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{beats.sample})#{RESET}"
+      beat = beats.sample
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{beat})#{RESET}"
+      tee("#{PARENTHETICAL_INDENT}(#{beat})\n")
     end
 
     def screenplay_heading(name, color: PINK)
       puts
       puts "#{color}#{BOLD}#{SCREENPLAY_INDENT}#{name}#{RESET}"
+      tee("\n#{SCREENPLAY_INDENT}#{name}\n")
     end
 
     SUBMIT_HINT_REPEAT_CHANCE = 0.2
@@ -50,8 +76,11 @@ module Jules
     @submit_hint_shown = false
 
     class << self
-      attr_accessor :submit_hint_shown, :slash_model_names_provider
+      attr_accessor :submit_hint_shown, :slash_model_names_provider, :screenplay_io, :screenplay_buffer
     end
+
+    @screenplay_io = nil
+    @screenplay_buffer = nil
 
     FZF_INSTALL_MESSAGE = 'Install fzf to use @ path mentions: https://github.com/junegunn/fzf'
 
@@ -419,62 +448,97 @@ module Jules
     end
 
     def print_help(skill_names: [])
-      puts
-      puts "#{CYAN}#{BOLD}#{PARENTHETICAL_INDENT}Slash Commands#{RESET}"
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  /help          — show this help#{RESET}"
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  /clear, /new   — clear conversation and start fresh#{RESET}"
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  /model         — list available models#{RESET}"
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  /model <name>  — switch to a different model#{RESET}"
-      if skill_names.any?
-        skill_names.each do |name|
-          puts "#{COMMENT}#{PARENTHETICAL_INDENT}  /#{name}#{RESET}"
+      lines = [
+        '',
+        "#{PARENTHETICAL_INDENT}Slash Commands",
+        "#{PARENTHETICAL_INDENT}  /help          — show this help",
+        "#{PARENTHETICAL_INDENT}  /clear, /new   — clear conversation and start fresh",
+        "#{PARENTHETICAL_INDENT}  /model         — list available models",
+        "#{PARENTHETICAL_INDENT}  /model <name>  — switch to a different model"
+      ]
+      skill_names.each { |name| lines << "#{PARENTHETICAL_INDENT}  /#{name}" } if skill_names.any?
+      lines += [
+        '',
+        "#{PARENTHETICAL_INDENT}Keyboard Shortcuts",
+        "#{PARENTHETICAL_INDENT}  ctrl+s         — send message",
+        "#{PARENTHETICAL_INDENT}  alt+enter      — send message",
+        "#{PARENTHETICAL_INDENT}  ctrl+c         — interrupt current action",
+        "#{PARENTHETICAL_INDENT}  ctrl+o         — compose in $EDITOR",
+        "#{PARENTHETICAL_INDENT}  ctrl+d         — exit",
+        "#{PARENTHETICAL_INDENT}  @              — fuzzy-find file mention (Esc keeps a literal @)",
+        "#{PARENTHETICAL_INDENT}  /              — fuzzy command picker (Esc keeps a literal /)",
+        ''
+      ]
+
+      lines.each do |line|
+        if line.empty?
+          puts
+        elsif line.include?('Slash Commands') || line.include?('Keyboard Shortcuts')
+          puts "#{CYAN}#{BOLD}#{line}#{RESET}"
+        else
+          puts "#{COMMENT}#{line}#{RESET}"
         end
+        tee("#{line}\n")
       end
-      puts
-      puts "#{CYAN}#{BOLD}#{PARENTHETICAL_INDENT}Keyboard Shortcuts#{RESET}"
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+s         — send message#{RESET}"
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  alt+enter      — send message#{RESET}"
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+c         — interrupt current action#{RESET}"
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+o         — compose in $EDITOR#{RESET}"
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+d         — exit#{RESET}"
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  @              — fuzzy-find file mention (Esc keeps a literal @)#{RESET}"
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  /              — fuzzy command picker (Esc keeps a literal /)#{RESET}"
-      puts
     end
 
     def print_model_switch(provider_label, model)
-      provider_model = "#{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT}"
+      provider_model_colored = "#{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT}"
+      provider_model_plain = "#{provider_label}'s #{model}"
       puts
       puts "#{COMMENT}INTERCUT:#{RESET}"
+      tee("\nINTERCUT:\n")
       puts
-      Script::MODEL_SWITCH_LINES.sample.call(provider_model).each_line do |line|
+      tee("\n")
+      line_template = Script::MODEL_SWITCH_LINES.sample
+      line_template.call(provider_model_colored).each_line do |line|
         puts "#{COMMENT}#{line.chomp}#{RESET}"
       end
+      line_template.call(provider_model_plain).each_line do |line|
+        tee("#{line.chomp}\n")
+      end
       puts
+      tee("\n")
     end
 
     def print_model_usage(models: nil)
       puts
+      tee("\n")
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}(usage: /model <model-name>)#{RESET}"
+      tee("#{PARENTHETICAL_INDENT}(usage: /model <model-name>)\n")
       if models&.any?
         puts "#{COMMENT}#{PARENTHETICAL_INDENT}(available models:)#{RESET}"
+        tee("#{PARENTHETICAL_INDENT}(available models:)\n")
         models.each do |model_name|
           puts "#{COMMENT}#{PARENTHETICAL_INDENT}  - #{model_name}#{RESET}"
+          tee("#{PARENTHETICAL_INDENT}  - #{model_name}\n")
         end
       end
       puts
+      tee("\n")
     end
 
     def print_opening_scene(provider_label, model, tool_count:, skill_names: [], lobotomized: false)
-      provider_model = "#{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT}"
+      provider_model_colored = "#{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT}"
+      provider_model_plain = "#{provider_label}'s #{model}"
 
-      puts "#{COMMENT}#{Script::OPENING_TRANSITIONS.sample}#{RESET}"
+      opening = Script::OPENING_TRANSITIONS.sample
+      puts "#{COMMENT}#{opening}#{RESET}"
+      tee("#{opening}\n")
       puts
-      puts "#{COMMENT}#{Script::SCENE_HEADINGS.sample}#{RESET}"
+      tee("\n")
+      scene = Script::SCENE_HEADINGS.sample
+      puts "#{COMMENT}#{scene}#{RESET}"
+      tee("#{scene}\n")
       puts
+      tee("\n")
       entrance_lines = lobotomized ? Script::LOBOTOMIZED_ENTRANCE_LINES : Script::ENTRANCE_LINES
-      entrance_lines.sample.call(provider_model).each_line do |line|
+      entrance_template = entrance_lines.sample
+      entrance_template.call(provider_model_colored).each_line do |line|
         puts "#{COMMENT}#{line.chomp}#{RESET}"
+      end
+      entrance_template.call(provider_model_plain).each_line do |line|
+        tee("#{line.chomp}\n")
       end
       skill_count = skill_names.size
       skill_bit = if skill_count.zero?
@@ -482,31 +546,47 @@ module Jules
                   else
                     " #{skill_count} #{skill_count == 1 ? 'skill' : 'skills'} up the sleeve."
                   end
-      puts "#{COMMENT}#{Script::LOADOUT_LINES.sample.call(tool_count, skill_bit)}#{RESET}"
+      loadout = Script::LOADOUT_LINES.sample.call(tool_count, skill_bit)
+      puts "#{COMMENT}#{loadout}#{RESET}"
+      tee("#{loadout}\n")
       puts
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{Script::CLOSING_PARENTHETICALS.sample}#{RESET}"
+      tee("\n")
+      closing = Script::CLOSING_PARENTHETICALS.sample
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{closing}#{RESET}"
+      tee("#{PARENTHETICAL_INDENT}#{closing}\n")
     end
 
     def print_assistant(text, elapsed: nil)
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{elapsed.round(1)} seconds pass)#{RESET}" if elapsed
+      if elapsed
+        elapsed_text = "(#{elapsed.round(1)} seconds pass)"
+        puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{elapsed_text}#{RESET}"
+        tee("#{PARENTHETICAL_INDENT}#{elapsed_text}\n")
+      end
       screenplay_heading('JULES', color: PURPLE)
       print_action_beat(Script::JULES_ACTION_BEATS)
       puts render_markdown(text)
+      tee("#{text}\n")
     end
 
     def print_scene_cut
+      transition = Script::SCENE_CUT_TRANSITIONS.sample
+      heading = Script::SCENE_CUT_HEADINGS.sample
+      parenthetical = Script::SCENE_CUT_PARENTHETICALS.sample
       puts
-      puts "#{COMMENT}#{Script::SCENE_CUT_TRANSITIONS.sample}#{RESET}"
+      puts "#{COMMENT}#{transition}#{RESET}"
       puts
-      puts "#{COMMENT}#{Script::SCENE_CUT_HEADINGS.sample}#{RESET}"
+      puts "#{COMMENT}#{heading}#{RESET}"
       puts
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{Script::SCENE_CUT_PARENTHETICALS.sample}#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{parenthetical}#{RESET}"
       puts
+      tee("\n#{transition}\n\n#{heading}\n\n#{PARENTHETICAL_INDENT}#{parenthetical}\n\n")
     end
 
     def print_interrupt
+      interrupt = Script::INTERRUPT_PARENTHETICALS.sample
       puts
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{Script::INTERRUPT_PARENTHETICALS.sample}#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{interrupt}#{RESET}"
+      tee("\n#{PARENTHETICAL_INDENT}#{interrupt}\n")
     end
 
     def print_fade_out
@@ -516,6 +596,7 @@ module Jules
       puts
       puts "#{COMMENT}#{SCREENPLAY_INDENT}#{title}#{RESET}"
       puts
+      tee("\n#{transition}\n\n#{SCREENPLAY_INDENT}#{title}\n\n")
     end
 
     def render_markdown(text)
@@ -578,7 +659,9 @@ module Jules
 
       unless direction
         puts "#{COMMENT}#{PARENTHETICAL_INDENT}(Jules uses #{tool_name})#{RESET}"
+        tee("#{PARENTHETICAL_INDENT}(Jules uses #{tool_name})\n")
         puts
+        tee("\n")
         return
       end
 
@@ -587,7 +670,9 @@ module Jules
       color = direction[:color]
 
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}(Jules #{color}#{BOLD}#{verb}#{RESET}#{COMMENT} #{detail})#{RESET}"
+      tee("#{PARENTHETICAL_INDENT}(Jules #{verb} #{detail})\n")
       puts
+      tee("\n")
     end
 
     UNTRUNCATED_TOOL_PREVIEW_NAMES = %w[edit patch].freeze
@@ -599,18 +684,31 @@ module Jules
       lines = normalized_result.lines
       untruncated = UNTRUNCATED_TOOL_PREVIEW_NAMES.include?(tool_name.to_s)
       preview = !untruncated && lines.count > 6 ? lines[0..4] : lines
-      preview.each { |line| puts "#{COMMENT}#{PARENTHETICAL_INDENT} #{line.chomp}#{RESET}" }
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT} \u2026 #{lines.count - 5} more lines#{RESET}" if !untruncated && lines.count > 6
+      preview.each do |line|
+        puts "#{COMMENT}#{PARENTHETICAL_INDENT} #{line.chomp}#{RESET}"
+        tee("#{PARENTHETICAL_INDENT} #{line.chomp}\n")
+      end
+      if !untruncated && lines.count > 6
+        truncation = "#{PARENTHETICAL_INDENT} \u2026 #{lines.count - 5} more lines"
+        puts "#{COMMENT}#{truncation}#{RESET}"
+        tee("#{truncation}\n")
+      end
       puts
+      tee("\n")
     end
 
     def print_error(message, raw: nil)
       puts "#{RED}Error: #{message}#{RESET}"
-      puts "#{COMMENT}Raw Response: #{raw}#{RESET}" if raw
+      tee("Error: #{message}\n")
+      return unless raw
+
+      puts "#{COMMENT}Raw Response: #{raw}#{RESET}"
+      tee("Raw Response: #{raw}\n")
     end
 
     def print_info(text)
       puts "#{CYAN}#{text}#{RESET}"
+      tee("#{text}\n")
     end
 
     def with_spinner(label: spinner_label, leading_newline: false)

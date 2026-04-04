@@ -6,11 +6,15 @@ class TerminalTest < Minitest::Test
   def setup
     Jules::Terminal.submit_hint_shown = false
     Jules::Terminal.slash_model_names_provider = nil
+    Jules::Terminal.screenplay_io = nil
+    Jules::Terminal.screenplay_buffer = nil
   end
 
   def teardown
     Jules::Terminal.submit_hint_shown = false
     Jules::Terminal.slash_model_names_provider = nil
+    Jules::Terminal.screenplay_io = nil
+    Jules::Terminal.screenplay_buffer = nil
   end
 
   def test_show_submit_hint_is_true_before_first_hint_is_shown

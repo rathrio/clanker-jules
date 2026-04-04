@@ -81,6 +81,7 @@ lobotomized = provider.lobotomized?
 tool_names = lobotomized ? Jules::Tool::LOBOTOMIZED_TOOLS : nil
 tools = Jules::Tool.declarations(format: provider.tool_format, only: tool_names)
 
+Jules::Terminal.start_screenplay_buffer
 Jules::Terminal.print_opening_scene(
   provider.provider_label, provider.model,
   tool_count: tools.size,
