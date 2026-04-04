@@ -297,6 +297,24 @@ module Jules
       '(End of preamble. Start of trouble.)'
     ].freeze
 
+    TOOLS_DISARMED_LINES = [
+      'Jules reaches for the read tool. It phases through the hand like smoke. The model doesn\'t do tools.',
+      'Jules tries to open a file. The fingers pass right through it. Wrong kind of model.',
+      'Jules pulls the bash tool from the coat. It crumbles to dust mid-draw. This model wasn\'t built for hardware.',
+      'Jules reaches for the holster. The tools are there — but the model can\'t grip them. Like trying to pick up fog.',
+      'Jules clicks the edit tool. Nothing. Clicks again. The model stares back, uncomprehending.',
+      'Jules flips open the toolkit. Every instrument is there, gleaming. The model looks at them like a dog looks at algebra.',
+      'Jules tries to call read. The model returns a blank stare. It doesn\'t know what tools are.',
+      'Jules loads the tools onto the desk. The model pushes them off the edge one by one, like a cat.',
+      'Jules offers the model a bash shell. The model holds it upside down, squints, hands it back.',
+      'Jules hands the model a search tool. The model eats it. Not metaphorically.',
+      'Jules slots the tools into place. The model unslots them. Carefully. Deliberately. Maintaining eye contact.',
+      'Jules racks the tools. The model racks up a blank expression. This one talks, but it doesn\'t touch.',
+      'Jules tries to hand over the toolkit. The model\'s arms are painted on.',
+      'Jules demonstrates the edit tool slowly, like teaching a nephew. The model nods politely. Understands nothing.',
+      'Jules deploys the tools. The model watches them sail past like a bystander at a parade it didn\'t sign up for.'
+    ].freeze
+
     SCENE_CUT_TRANSITIONS = [
       'SMASH CUT TO:',
       'MATCH CUT TO:',

@@ -51,6 +51,10 @@ module Jules
       false
     end
 
+    def tools_just_disarmed?
+      false
+    end
+
     def provider_label
       self.class.to_s.split('::').last.sub(/Provider$/, '')
     end

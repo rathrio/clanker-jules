@@ -77,6 +77,9 @@ module Jules
         'Content-Type' => 'application/json',
         'Authorization' => "Bearer #{resolved_key}"
       }
+
+      @tools_supported = true
+      @tools_just_disarmed = false
     end
 
     attr_accessor :model
@@ -84,6 +87,13 @@ module Jules
 
     def lobotomized?
       @lobotomized
+    end
+
+    def tools_just_disarmed?
+      return false unless @tools_just_disarmed
+
+      @tools_just_disarmed = false
+      true
     end
 
     def tool_format
@@ -109,13 +119,15 @@ module Jules
       messages = Jules::Message.format_history(history, format: :openai)
       messages.unshift({ role: 'system', content: system_prompt }) if system_prompt
 
-      request = Net::HTTP::Post.new(@uri.request_uri, @headers)
-      request.body = {
+      body = {
         model: @model,
         max_tokens: @max_tokens,
-        messages: messages,
-        tools: tools
-      }.to_json
+        messages: messages
+      }
+      body[:tools] = tools if @tools_supported && tools&.any?
+
+      request = Net::HTTP::Post.new(@uri.request_uri, @headers)
+      request.body = body.to_json
 
       retries_left = DEFAULT_RETRIES
 
@@ -126,7 +138,18 @@ module Jules
         http.read_timeout = DEFAULT_READ_TIMEOUT
 
         response = http.request(request)
-        Jules::Result.ok(JSON.parse(response.body))
+        parsed = JSON.parse(response.body)
+
+        if @tools_supported && tools_not_supported_error?(parsed)
+          @tools_supported = false
+          @tools_just_disarmed = true
+          body.delete(:tools)
+          request.body = body.to_json
+          response = http.request(request)
+          parsed = JSON.parse(response.body)
+        end
+
+        Jules::Result.ok(parsed)
       rescue *NETWORK_ERRORS => e
         retries_left -= 1
         if retries_left.negative?
@@ -146,6 +169,11 @@ module Jules
           detail: { provider: provider_label }
         )
       end
+    end
+
+    def tools_not_supported_error?(parsed)
+      msg = parsed.dig('error', 'message').to_s
+      msg.include?('does not support tools') || msg.include?('does not support function')
     end
 
     def parse_response(response)

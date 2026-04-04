@@ -482,6 +482,15 @@ module Jules
       end
     end
 
+    def print_tools_disarmed
+      line = Script::TOOLS_DISARMED_LINES.sample
+      puts
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{line})#{RESET}"
+      tee("\n#{PARENTHETICAL_INDENT}(#{line})\n")
+      puts
+      tee("\n")
+    end
+
     def print_model_switch(provider_label, model)
       provider_model_colored = "#{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT}"
       provider_model_plain = "#{provider_label}'s #{model}"

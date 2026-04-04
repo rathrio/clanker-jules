@@ -71,6 +71,8 @@ module Jules
           return Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at
         end
 
+        @terminal.print_tools_disarmed if @provider.tools_just_disarmed?
+
         parsed_result = @provider.parse_response(response_result.value)
         if parsed_result.err?
           @terminal.print_error(parsed_result.message, raw: response_result.value.inspect)
