@@ -90,10 +90,10 @@ module Jules
       DESC
     end
 
-    def self.render_execution(args)
+    def self.execution_summary(args)
       base_path = args['path'] || '.'
       target = args['name'] || args['pattern']
-      "FIND CODE: #{target} in #{base_path}"
+      { detail: "#{target} in #{base_path}" }
     end
 
     param name: 'pattern',

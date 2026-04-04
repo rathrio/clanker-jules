@@ -17,8 +17,8 @@ module Jules
       DESC
     end
 
-    def self.render_execution(args)
-      "MEMORY: \"#{args['query']}\""
+    def self.execution_summary(args)
+      { detail: "\"#{args['query']}\"" }
     end
 
     param name: 'query',

@@ -21,8 +21,8 @@ module Jules
       DESC
     end
 
-    def self.render_execution(args)
-      "BASH: #{args['command']}"
+    def self.execution_summary(args)
+      { detail: args['command'] }
     end
 
     param name: 'command', type: String, description: 'The bash command to execute'

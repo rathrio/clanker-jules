@@ -38,8 +38,8 @@ module Jules
       DESC
     end
 
-    def self.render_execution(args)
-      "NOTIFICATION: #{args['message']}"
+    def self.execution_summary(args)
+      { detail: args['message'] }
     end
 
     param name: 'message', type: String, description: 'The notification message to display to the user'

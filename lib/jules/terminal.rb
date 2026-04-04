@@ -557,30 +557,36 @@ module Jules
       end
     end
 
-    TOOL_LABEL_COLORS = {
-      'BASH' => ORANGE,
-      'READ' => CYAN,
-      'SEARCH' => GREEN,
-      'FIND CODE' => GREEN,
-      'GLOB' => GREEN,
-      'EDIT' => YELLOW,
-      'WRITE' => YELLOW,
-      'PATCH' => YELLOW,
-      'PATCH (DRY RUN)' => YELLOW,
-      'FETCH' => PINK,
-      'LOAD SKILL' => PURPLE,
-      'MEMORY' => PURPLE
+    TOOL_STAGE_DIRECTIONS = {
+      'bash' => { verb: 'runs',                        color: ORANGE },
+      'read' => { verb: 'reads',                       color: CYAN },
+      'edit' => { verb: 'edits',                       color: YELLOW },
+      'write' => { verb: 'writes',                      color: YELLOW },
+      'patch' => { verb: 'patches',                     color: YELLOW,
+                   variants: { dry_run: 'dry-runs a patch on' } },
+      'glob' => { verb: 'searches for files matching', color: GREEN },
+      'search' => { verb: 'searches for', color: GREEN },
+      'findcode' => { verb: 'looks up',                    color: GREEN },
+      'webfetch' => { verb: 'fetches',                     color: PINK },
+      'loadskill' => { verb: 'loads skill', color: PURPLE },
+      'memory' => { verb: 'recalls', color: PURPLE },
+      'notification' => { verb: 'notifies', color: COMMENT }
     }.freeze
 
-    def print_tool_execution(text)
-      label, rest = text.split(': ', 2)
-      color = TOOL_LABEL_COLORS[label] || COMMENT
+    def print_tool_execution(tool_name, summary)
+      direction = TOOL_STAGE_DIRECTIONS[tool_name]
 
-      if rest
-        puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{color}#{BOLD}#{label}#{RESET}#{COMMENT} \u2014 #{rest})#{RESET}"
-      else
-        puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{text})#{RESET}"
+      unless direction
+        puts "#{COMMENT}#{PARENTHETICAL_INDENT}(Jules uses #{tool_name})#{RESET}"
+        puts
+        return
       end
+
+      verb = (summary[:variant] && direction[:variants]&.dig(summary[:variant])) || direction[:verb]
+      detail = summary[:detail]
+      color = direction[:color]
+
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(Jules #{color}#{BOLD}#{verb}#{RESET}#{COMMENT} #{detail})#{RESET}"
       puts
     end
 

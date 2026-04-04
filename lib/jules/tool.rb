@@ -12,8 +12,8 @@ module Jules
     }.freeze
 
     module ClassMethods
-      def render_execution(args)
-        "#{tool_name.upcase}: #{args.to_json}"
+      def execution_summary(args)
+        { detail: args.values.first.to_s }
       end
     end
 

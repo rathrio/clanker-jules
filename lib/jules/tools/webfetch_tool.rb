@@ -15,8 +15,8 @@ module Jules
       DESC
     end
 
-    def self.render_execution(args)
-      "FETCH: #{args['url']}"
+    def self.execution_summary(args)
+      { detail: args['url'] }
     end
 
     param name: 'url', type: String, description: 'The URL of the webpage to fetch'

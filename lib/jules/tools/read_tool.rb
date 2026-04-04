@@ -15,13 +15,13 @@ module Jules
       DESC
     end
 
-    def self.render_execution(args)
+    def self.execution_summary(args)
       range = if args['start_line'] && args['end_line']
                 " (lines #{args['start_line']}-#{args['end_line']})"
               elsif args['start_line']
                 " (from line #{args['start_line']})"
               end
-      "READ: #{args['path']}#{range}"
+      { detail: "#{args['path']}#{range}" }
     end
 
     param name: 'path', type: String, description: 'The path to the file to read'

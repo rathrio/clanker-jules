@@ -16,8 +16,8 @@ module Jules
       DESC
     end
 
-    def self.render_execution(args)
-      "WRITE: #{args['path']}"
+    def self.execution_summary(args)
+      { detail: args['path'] }
     end
 
     param name: 'path', type: String, description: 'The path to the file to write'

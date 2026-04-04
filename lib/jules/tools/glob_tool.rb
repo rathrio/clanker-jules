@@ -21,10 +21,10 @@ module Jules
       DESC
     end
 
-    def self.render_execution(args)
+    def self.execution_summary(args)
       pattern = args['pattern']
       base_path = args['path'] || '.'
-      "GLOB: #{pattern} in #{base_path}"
+      { detail: "#{pattern} in #{base_path}" }
     end
 
     param name: 'pattern', type: String, description: 'Glob pattern to match files (for example: **/*.rb).'

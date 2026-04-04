@@ -25,10 +25,10 @@ module Jules
       DESC
     end
 
-    def self.render_execution(args)
+    def self.execution_summary(args)
       query = args['query']
       base_path = args['path'] || '.'
-      "SEARCH: \"#{query}\" in #{base_path}"
+      { detail: "\"#{query}\" in #{base_path}" }
     end
 
     param name: 'query', type: String, description: 'The text to search for.'

@@ -20,10 +20,10 @@ module Jules
       DESC
     end
 
-    def self.render_execution(args)
-      cwd = args['path'] || Dir.pwd
-      label = truthy?(args['dry_run']) ? 'PATCH (DRY RUN)' : 'PATCH'
-      "#{label}: #{cwd}"
+    def self.execution_summary(args)
+      summary = { detail: args['path'] || Dir.pwd }
+      summary[:variant] = :dry_run if truthy?(args['dry_run'])
+      summary
     end
 
     param name: 'patch', type: String, description: 'Unified diff patch content to apply.'

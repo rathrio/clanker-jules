@@ -16,8 +16,8 @@ module Jules
       DESC
     end
 
-    def self.render_execution(args)
-      "LOAD SKILL: #{args['name']}"
+    def self.execution_summary(args)
+      { detail: args['name'] }
     end
 
     param name: 'name',

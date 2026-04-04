@@ -105,12 +105,8 @@ module Jules
           nil
         end
 
-        execution = if tool_class
-                      tool_class.render_execution(call[:args])
-                    else
-                      "UNKNOWN TOOL: #{call[:name]}"
-                    end
-        @terminal.print_tool_execution(execution)
+        summary = tool_class&.execution_summary(call[:args])
+        @terminal.print_tool_execution(call[:name], summary)
 
         result = Jules::Tool.call(call[:name], call[:args])
         tool_output = result.ok? ? result.value : result.message
