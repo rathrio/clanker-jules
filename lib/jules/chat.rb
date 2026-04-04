@@ -38,6 +38,17 @@ module Jules
       end
     end
 
+    COMPACT_PROMPT = <<~PROMPT
+      Summarize the conversation so far into a concise context document. Include:
+      - Key decisions made and their rationale
+      - Important facts, file paths, and code snippets discussed
+      - Current state of any ongoing task
+      - Any constraints or requirements established
+
+      Be thorough but concise. This summary will replace the conversation history to free up context space.
+      Output only the summary, no preamble.
+    PROMPT
+
     private
 
     def install_exit_handler
@@ -140,6 +151,9 @@ module Jules
         @session_started_at = nil
         @session_dir = nil
         true
+      when :compact
+        compact_conversation
+        true
       when :help
         @terminal.print_help(skill_names: Jules::Skill.all.keys)
         true
@@ -183,6 +197,36 @@ module Jules
       end
 
       true
+    end
+
+    def compact_conversation
+      if @messages.empty?
+        @terminal.print_info('Nothing to compact — conversation is empty.')
+        return
+      end
+
+      summary_text = @terminal.with_spinner(label: 'compacting', leading_newline: true) do
+        summary_messages = @messages + [Jules::Message.new('user', [{ text: COMPACT_PROMPT }])]
+        result = @provider.generate_content(summary_messages, [], system_prompt: @system_prompt)
+        next nil if result.err?
+
+        parsed = @provider.parse_response(result.value)
+        next nil if parsed.err?
+
+        parsed.value[:data]
+      end
+
+      unless summary_text
+        @terminal.print_error('Failed to generate conversation summary.')
+        return
+      end
+
+      old_count = @messages.length
+      @messages.clear
+      @messages << Jules::Message.new('user', [{ text: '[Conversation compacted. Summary of prior context follows.]' }])
+      @messages << Jules::Message.new('model', [{ text: summary_text }])
+
+      @terminal.print_compact_result(old_count, summary_text)
     end
 
     def list_provider_models

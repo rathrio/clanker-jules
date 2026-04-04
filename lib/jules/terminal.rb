@@ -417,6 +417,7 @@ module Jules
     def slash_command_candidates(model_names: nil, skill_names: Jules::Skill.all.keys)
       builtins = [
         { value: '/help', label: '/help' },
+        { value: '/compact', label: '/compact' },
         { value: '/clear', label: '/clear' },
         { value: '/new', label: '/new' },
         { value: '/model', label: '/model' }
@@ -438,6 +439,7 @@ module Jules
     def parse_slash_command(input, skill_names: [])
       case input
       when '/clear', '/new' then :clear
+      when '/compact' then :compact
       when '/help' then :help
       when %r{^/model\s+(.+)}i then [:model, Regexp.last_match(1).strip]
       when '/model' then [:model, nil]
@@ -452,6 +454,7 @@ module Jules
         '',
         "#{PARENTHETICAL_INDENT}Slash Commands",
         "#{PARENTHETICAL_INDENT}  /help          — show this help",
+        "#{PARENTHETICAL_INDENT}  /compact       — summarize conversation to save context",
         "#{PARENTHETICAL_INDENT}  /clear, /new   — clear conversation and start fresh",
         "#{PARENTHETICAL_INDENT}  /model         — list available models",
         "#{PARENTHETICAL_INDENT}  /model <name>  — switch to a different model"
@@ -713,6 +716,15 @@ module Jules
 
       puts "#{COMMENT}Raw Response: #{raw}#{RESET}"
       tee("Raw Response: #{raw}\n")
+    end
+
+    def print_compact_result(old_message_count, summary_text)
+      puts
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{old_message_count} messages compacted into summary)#{RESET}"
+      tee("\n#{PARENTHETICAL_INDENT}(#{old_message_count} messages compacted into summary)\n")
+      screenplay_heading('JULES', color: PURPLE)
+      puts render_markdown(summary_text)
+      tee("#{summary_text}\n")
     end
 
     def print_info(text)
