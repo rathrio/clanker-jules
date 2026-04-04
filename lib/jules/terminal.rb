@@ -91,7 +91,8 @@ module Jules
         byte = @input.getbyte
         return nil if byte.nil?
 
-        if byte == 0x0F # Ctrl+O — open in $EDITOR
+        case byte
+        when 0x0F # Ctrl+O — open in $EDITOR
           current_buf = Reline.line_buffer.to_s
           content = Terminal.open_in_editor(current_buf)
           if content
@@ -103,11 +104,13 @@ module Jules
           Reline.redisplay
           return @injected_bytes.shift unless @injected_bytes.empty?
 
-          return getbyte
-        elsif byte == 0x13 # Ctrl+S
+          getbyte
+        when 0x13 # Ctrl+S
           @submit_requested = true
-          return 0x0D
-        elsif byte == 0x40 && Terminal.mention_trigger_boundary?(Reline.line_buffer, Reline.point) # @
+          0x0D
+        when 0x40 # @
+          return 0x40 unless Terminal.mention_trigger_boundary?(Reline.line_buffer, Reline.point)
+
           # If another byte is immediately available, treat this as pasted text and skip picker.
           return 0x40 if @input.wait_readable(0)
 
@@ -118,8 +121,10 @@ module Jules
 
           # If mention selection was canceled, fall back to inserting the literal '@'
           # so the current buffer is immediately visible again.
-          return 0x40
-        elsif byte == 0x2F && Terminal.slash_trigger_boundary?(Reline.line_buffer, Reline.point) # /
+          0x40
+        when 0x2F # /
+          return 0x2F unless Terminal.slash_trigger_boundary?(Reline.line_buffer, Reline.point)
+
           # If another byte is immediately available, treat this as pasted text and skip picker.
           return 0x2F if @input.wait_readable(0)
 
@@ -129,8 +134,8 @@ module Jules
           return @injected_bytes.shift unless @injected_bytes.empty?
 
           # If command selection was canceled, fall back to inserting literal '/'.
-          return 0x2F
-        elsif byte == 0x1B # ESC — treat only Alt+Enter specially; swallow lone ESC
+          0x2F
+        when 0x1B # ESC — treat only Alt+Enter specially; swallow lone ESC
           if @input.wait_readable(0.05)
             next_byte = @input.getbyte
             if [0x0D, 0x0A].include?(next_byte)
@@ -142,10 +147,10 @@ module Jules
             return getbyte
           end
 
-          return getbyte
+          getbyte
+        else
+          byte
         end
-
-        byte
       end
 
       def wait_readable(timeout = nil)
