@@ -5,6 +5,7 @@ require 'reline'
 require 'io/console'
 require 'io/wait'
 require 'open3'
+require 'tempfile'
 require_relative 'script'
 
 module Jules
@@ -90,7 +91,20 @@ module Jules
         byte = @input.getbyte
         return nil if byte.nil?
 
-        if byte == 0x13 # Ctrl+S
+        if byte == 0x0F # Ctrl+O — open in $EDITOR
+          current_buf = Reline.line_buffer.to_s
+          content = Terminal.open_in_editor(current_buf)
+          if content
+            # Ctrl+E (end of line) + Ctrl+U (kill line) to clear, then inject new content
+            clear = [0x05, 0x15] # move to end, kill line
+            @injected_bytes.concat(clear)
+            @injected_bytes.concat(content.bytes)
+          end
+          Reline.redisplay
+          return @injected_bytes.shift unless @injected_bytes.empty?
+
+          return getbyte
+        elsif byte == 0x13 # Ctrl+S
           @submit_requested = true
           return 0x0D
         elsif byte == 0x40 && Terminal.mention_trigger_boundary?(Reline.line_buffer, Reline.point) # @
@@ -179,6 +193,29 @@ module Jules
       input.strip
     ensure
       Reline.input = $stdin
+    end
+
+    def open_in_editor(existing_content = '')
+      editor = ENV['EDITOR'] || 'nvim'
+      tmpfile = Tempfile.new(['jules-prompt', '.md'])
+      tmpfile.write(existing_content) unless existing_content.empty?
+      tmpfile.flush
+      tmpfile.close
+
+      console = IO.console
+      console.cooked!
+      system(editor, tmpfile.path, in: '/dev/tty', out: '/dev/tty', err: '/dev/tty')
+      console.raw!
+
+      content = File.read(tmpfile.path).strip
+      return nil if content.empty?
+
+      content
+    rescue StandardError => e
+      print_error("Could not open editor: #{e.message}")
+      nil
+    ensure
+      tmpfile&.unlink
     end
 
     def mention_trigger_boundary?(line_buffer, cursor_point)
@@ -393,6 +430,7 @@ module Jules
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+s         — send message#{RESET}"
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}  alt+enter      — send message#{RESET}"
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+c         — interrupt current action#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+o         — compose in $EDITOR#{RESET}"
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}  ctrl+d         — exit#{RESET}"
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}  @              — fuzzy-find file mention (Esc keeps a literal @)#{RESET}"
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}  /              — fuzzy command picker (Esc keeps a literal /)#{RESET}"
