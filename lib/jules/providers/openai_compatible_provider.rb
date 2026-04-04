@@ -14,6 +14,7 @@ module Jules
     register_provider 'openrouter', preset: :openrouter
     register_provider 'kiro', preset: :kiro
     register_provider 'apfel', preset: :apfel
+    register_provider 'ollama', preset: :ollama
 
     OPENAI_COMPATIBLE_DEFAULTS = {
       provider_label: 'OpenRouter',
@@ -42,9 +43,19 @@ module Jules
       lobotomized: true
     }.freeze
 
+    OLLAMA_DEFAULTS = {
+      provider_label: 'Ollama',
+      base_url: 'http://localhost:11434/v1/chat/completions',
+      api_key_env: nil,
+      api_key_fallback: 'unused',
+      default_model: 'qwen2.5-coder:14b',
+      max_tokens: 4096
+    }.freeze
+
     PRESET_DEFAULTS = {
       kiro: KIRO_DEFAULTS,
-      apfel: APFEL_DEFAULTS
+      apfel: APFEL_DEFAULTS,
+      ollama: OLLAMA_DEFAULTS
     }.freeze
 
     def initialize(model: nil, preset: nil, base_url: nil, api_key: nil, max_tokens: nil)
@@ -176,7 +187,9 @@ module Jules
     end
 
     def list_models
-      models_uri = URI.parse("#{@uri.scheme}://#{@uri.host}/api/v1/models")
+      base_path = @uri.path.sub(%r{/chat/completions\z}, '')
+      models_uri = @uri.dup
+      models_uri.path = "#{base_path}/models"
       request = Net::HTTP::Get.new(models_uri.request_uri, @headers)
 
       retries_left = DEFAULT_RETRIES
