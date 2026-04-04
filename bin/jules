@@ -29,6 +29,14 @@ OptionParser.new do |opts|
     model_set_by_cli = true
   end
 
+  opts.on('-s', '--system-prompt PROMPT', 'Override the system prompt') do |prompt|
+    options[:system_prompt] = prompt
+  end
+
+  opts.on('-b', '--bare', 'Disable all tools and skills') do
+    options[:bare] = true
+  end
+
   opts.on('-l', '--list-models', 'List models for the selected provider and exit') do
     options[:list_models] = true
   end
@@ -76,10 +84,15 @@ if options[:list_models]
   end
 end
 
-skills = Jules::Skill.all
-lobotomized = provider.lobotomized?
-tool_names = lobotomized ? Jules::Tool::LOBOTOMIZED_TOOLS : nil
-tools = Jules::Tool.declarations(format: provider.tool_format, only: tool_names)
+bare = options[:bare]
+skills = bare ? {} : Jules::Skill.all
+lobotomized = bare || provider.lobotomized?
+tools = if bare
+          []
+        else
+          tool_names = lobotomized ? Jules::Tool::LOBOTOMIZED_TOOLS : nil
+          Jules::Tool.declarations(format: provider.tool_format, only: tool_names)
+        end
 
 Jules::Terminal.start_screenplay_buffer
 Jules::Terminal.print_opening_scene(
@@ -89,8 +102,9 @@ Jules::Terminal.print_opening_scene(
   lobotomized: lobotomized
 )
 
-system_prompt_path = File.expand_path('~/.jules/SYSTEM.md')
-system_prompt = if File.exist?(system_prompt_path)
+system_prompt = if options[:system_prompt]
+                  options[:system_prompt]
+                elsif File.exist?(system_prompt_path = File.expand_path('~/.jules/SYSTEM.md'))
                   File.read(system_prompt_path)
                 else
                   'You are Jules, a straight and to-the-point general-purpose terminal assistant.'
