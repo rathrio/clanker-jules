@@ -269,7 +269,7 @@ module Jules
       proc { |pm| "Jules boots up locally. No cloud, no phone-a-friend.\n#{pm}. Like bringing a pocket knife to a sword fight, but at least it's your pocket knife." },
       proc { |pm| "Jules enters the room like it forgot why it came in.\n#{pm}. The trenchcoat has more depth than the context window." },
       proc { |pm| "The screen barely flickers. Jules loads in a single gulp.\n#{pm}. Small enough to run on a phone. Smart enough to know it shouldn't." },
-      proc { |pm| "Jules appears with the quiet confidence of a model that has never seen a benchmark.\n#{pm}. Blisshat ignorance is a feature, not a bug." },
+      proc { |pm| "Jules appears with the quiet confidence of a model that has never seen a benchmark.\n#{pm}. Blissful ignorance is a feature, not a bug." },
       proc { |pm| "A hamster wheel squeaks somewhere inside the M-chip.\nJules materializes. #{pm}. Bless its heart." }
     ].freeze
 
