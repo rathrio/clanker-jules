@@ -1,5 +1,21 @@
 # frozen_string_literal: true
 
+if ENV['COVERAGE']
+  require 'simplecov'
+  require 'simplecov_json_formatter'
+
+  SimpleCov.start do
+    enable_coverage :branch
+    primary_coverage :line
+    add_filter '/test/'
+    track_files 'lib/**/*.rb'
+    formatter SimpleCov::Formatter::MultiFormatter.new([
+                                                         SimpleCov::Formatter::HTMLFormatter,
+                                                         SimpleCov::Formatter::JSONFormatter
+                                                       ])
+  end
+end
+
 require 'minitest/autorun'
 require 'tmpdir'
 require 'fileutils'
