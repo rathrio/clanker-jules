@@ -91,3 +91,10 @@ bundle exec rake test
 bundle exec rubocop
 bundle exec rake ci
 ```
+
+To run tests with coverage reporting:
+
+```bash
+COVERAGE=true bundle exec rake test
+```
+Reports are generated in the `coverage/` directory.

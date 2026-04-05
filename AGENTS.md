@@ -32,3 +32,4 @@ This repository contains the source code for Jules, a terminal-based AI assistan
   - `bundle exec rake test`
   - `bundle exec rubocop`
   - or `bundle exec rake ci`
+  - To check coverage: `COVERAGE=true bundle exec rake test`
