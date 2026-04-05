@@ -153,6 +153,72 @@ class FindCodeToolTest < Minitest::Test
     assert_equal 'Error: ast-grep is not installed or not in PATH.', result
   end
 
+  def test_name_search_with_kind_call_finds_calls_to_named_method
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, 'a.rb'), "def perform\n  do_work\nend\n\nobj.perform\n")
+
+      result = Jules::FindCodeTool.new.call(
+        'name' => 'perform', 'lang' => 'ruby', 'kind' => 'call', 'path' => dir
+      )
+
+      assert_includes result, 'a.rb'
+      assert_includes result, 'obj.perform'
+      refute_includes result, 'def perform'
+    end
+  end
+
+  def test_name_search_with_kind_all_finds_both_definitions_and_calls
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, 'a.rb'), "def perform\n  do_work\nend\n\nobj.perform\n")
+
+      result = Jules::FindCodeTool.new.call(
+        'name' => 'perform', 'lang' => 'ruby', 'kind' => 'all', 'path' => dir
+      )
+
+      assert_includes result, 'def perform'
+      assert_includes result, 'obj.perform'
+    end
+  end
+
+  def test_name_search_returns_unsupported_language_error_for_unknown_lang
+    Dir.mktmpdir do |dir|
+      result = Jules::FindCodeTool.new.call(
+        'name' => 'perform', 'lang' => 'cobol', 'path' => dir
+      )
+
+      assert_equal "Error: unsupported language 'cobol' for name search.", result
+    end
+  end
+
+  def test_name_search_for_typescript_uses_property_identifier_rule
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'user.ts')
+      File.write(path, "class User {\n  perform() { return 1; }\n}\n")
+
+      result = Jules::FindCodeTool.new.call(
+        'name' => 'perform', 'lang' => 'typescript', 'path' => dir
+      )
+
+      assert_includes result, 'user.ts'
+      assert_includes result, 'perform()'
+    end
+  end
+
+  def test_pattern_search_truncates_results_past_max_results
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, 'a.rb'), (1..5).map { |i| "puts #{i}\n" }.join)
+
+      result = Jules::FindCodeTool.new.call(
+        'pattern' => 'puts $A',
+        'lang' => 'ruby',
+        'path' => dir,
+        'max_results' => 2
+      )
+
+      assert_match(/truncated at 2 matches/, result)
+    end
+  end
+
   def test_name_search_formats_results
     Dir.mktmpdir do |dir|
       tool = Jules::FindCodeTool.new

@@ -29,6 +29,43 @@ class ReadToolTest < Minitest::Test
     end
   end
 
+  def test_reads_from_start_line_to_end_of_file_when_end_line_omitted
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'notes.txt')
+      File.write(path, "line 1\nline 2\nline 3\n")
+
+      result = Jules::ReadTool.new.call('path' => path, 'start_line' => 2)
+
+      assert_equal "line 2\nline 3\n", result
+    end
+  end
+
+  def test_reads_up_to_end_line_when_start_line_omitted
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'notes.txt')
+      File.write(path, "line 1\nline 2\nline 3\n")
+
+      result = Jules::ReadTool.new.call('path' => path, 'end_line' => 2)
+
+      assert_equal "line 1\nline 2\n", result
+    end
+  end
+
+  def test_end_line_past_last_line_is_clamped_to_file_length
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'notes.txt')
+      File.write(path, "line 1\nline 2\n")
+
+      result = Jules::ReadTool.new.call(
+        'path' => path,
+        'start_line' => 1,
+        'end_line' => 999
+      )
+
+      assert_equal "line 1\nline 2\n", result
+    end
+  end
+
   def test_start_line_below_one_is_clamped_to_first_line
     Dir.mktmpdir do |dir|
       path = File.join(dir, 'notes.txt')

@@ -22,6 +22,23 @@ class EditToolTest < Minitest::Test
     end
   end
 
+  def test_includes_real_unified_diff_before_success_message
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'app.rb')
+      File.write(path, "puts 'hello'\n")
+
+      result = Jules::EditTool.new.call(
+        'path' => path,
+        'search' => "puts 'hello'",
+        'replace' => "puts 'hi'"
+      )
+
+      assert_includes result, "Edited #{path}"
+      assert_includes result, "puts 'hello'"
+      assert_includes result, "puts 'hi'"
+    end
+  end
+
   def test_returns_error_when_file_does_not_exist
     result = Jules::EditTool.new.call(
       'path' => '/tmp/does-not-exist.txt',

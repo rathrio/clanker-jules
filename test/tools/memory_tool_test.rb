@@ -58,6 +58,97 @@ class MemoryToolTest < Minitest::Test
     end
   end
 
+  def test_tiebreak_prefers_more_recently_modified_chat_when_scores_are_equal
+    with_temp_home do |home|
+      chats_dir = File.join(home, '.jules', 'chats')
+      FileUtils.mkdir_p(chats_dir)
+
+      older = File.join(chats_dir, 'older.json')
+      newer = File.join(chats_dir, 'newer.json')
+
+      write_chat(older, 'deploy rollback cache', 'older answer')
+      write_chat(newer, 'deploy rollback cache', 'newer answer')
+      File.utime(Time.now - 3600, Time.now - 3600, older)
+      File.utime(Time.now, Time.now, newer)
+
+      result = Jules::MemoryTool.new.call('query' => 'deploy rollback cache')
+
+      assert_includes result, '[From newer.json]'
+      assert_includes result, 'MODEL: newer answer'
+    end
+  end
+
+  def test_ignores_chat_files_with_invalid_json
+    with_temp_home do |home|
+      chats_dir = File.join(home, '.jules', 'chats')
+      FileUtils.mkdir_p(chats_dir)
+
+      File.write(File.join(chats_dir, 'broken.json'), '{not valid json')
+      good = File.join(chats_dir, 'good.json')
+      write_chat(good, 'deploy production issue', 'check rollback')
+
+      result = Jules::MemoryTool.new.call('query' => 'deploy production')
+
+      assert_includes result, '[From good.json]'
+      assert_includes result, 'USER: deploy production issue'
+    end
+  end
+
+  def test_no_memory_found_when_no_pair_matches_query
+    with_temp_home do |home|
+      chats_dir = File.join(home, '.jules', 'chats')
+      FileUtils.mkdir_p(chats_dir)
+      write_chat(File.join(chats_dir, 'a.json'), 'hello world', 'hi there')
+
+      result = Jules::MemoryTool.new.call('query' => 'zzz-nothing-here')
+
+      assert_equal "No memory found for 'zzz-nothing-here'.", result
+    end
+  end
+
+  def test_returns_error_message_when_chat_file_raises_during_processing
+    with_temp_home do |home|
+      chats_dir = File.join(home, '.jules', 'chats')
+      FileUtils.mkdir_p(chats_dir)
+      chat = File.join(chats_dir, 'unreadable.json')
+      write_chat(chat, 'hello', 'hi')
+      File.chmod(0o000, chat)
+
+      begin
+        result = Jules::MemoryTool.new.call('query' => 'hello there')
+
+        assert_match(/An unexpected error occurred:/, result)
+      ensure
+        File.chmod(0o644, chat)
+      end
+    end
+  end
+
+  def test_function_call_and_response_parts_contribute_to_scoring
+    with_temp_home do |home|
+      chats_dir = File.join(home, '.jules', 'chats')
+      FileUtils.mkdir_p(chats_dir)
+
+      messages = [
+        { 'role' => 'user', 'parts' => [{ 'text' => 'check the deploy logs' }] },
+        { 'role' => 'model', 'parts' => [
+          { 'text' => 'looking' },
+          { 'functionCall' => { 'name' => 'search', 'args' => { 'query' => 'production rollback cache' } } }
+        ] },
+        { 'role' => 'user', 'parts' => [
+          { 'functionResponse' => { 'name' => 'search',
+                                    'response' => { 'result' => 'production rollback cache found' } } }
+        ] },
+        { 'role' => 'model', 'parts' => [{ 'text' => 'summary' }] }
+      ]
+      File.write(File.join(chats_dir, 'c.json'), JSON.generate(messages))
+
+      result = Jules::MemoryTool.new.call('query' => 'production rollback cache')
+
+      assert_includes result, '[From c.json]'
+    end
+  end
+
   private
 
   def write_chat(path, user_text, model_text)
