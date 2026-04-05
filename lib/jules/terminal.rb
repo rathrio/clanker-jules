@@ -82,7 +82,7 @@ module Jules
     @screenplay_io = nil
     @screenplay_buffer = nil
 
-    FZF_INSTALL_MESSAGE = 'Install fzf to use @ path mentions: https://github.com/junegunn/fzf'
+    FZF_INSTALL_MESSAGE = 'Jules needs fzf to flip through the evidence binder — https://github.com/junegunn/fzf'
 
     def show_submit_hint?
       !Terminal.submit_hint_shown || Kernel.rand < SUBMIT_HINT_REPEAT_CHANCE
@@ -90,7 +90,7 @@ module Jules
 
     def print_submit_hint
       Terminal.submit_hint_shown = true
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(send: ctrl+s / alt+enter, exit: ctrl+d)#{RESET}"
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(slide it across: ctrl+s / alt+enter. walk out: ctrl+d)#{RESET}"
     end
 
     # Wraps Reline's input IO to intercept Ctrl+S and Alt+Enter as submit signals.
@@ -453,23 +453,23 @@ module Jules
       lines = [
         '',
         "#{PARENTHETICAL_INDENT}Slash Commands",
-        "#{PARENTHETICAL_INDENT}  /help          — show this help",
-        "#{PARENTHETICAL_INDENT}  /compact       — summarize conversation to save context",
-        "#{PARENTHETICAL_INDENT}  /clear, /new   — clear conversation and start fresh",
-        "#{PARENTHETICAL_INDENT}  /model         — list available models",
-        "#{PARENTHETICAL_INDENT}  /model <name>  — switch to a different model"
+        "#{PARENTHETICAL_INDENT}  /help          — call for backup",
+        "#{PARENTHETICAL_INDENT}  /compact       — trim the case file, keep the leads",
+        "#{PARENTHETICAL_INDENT}  /clear, /new   — fresh reel, new case",
+        "#{PARENTHETICAL_INDENT}  /model         — read the lineup",
+        "#{PARENTHETICAL_INDENT}  /model <name>  — change the coat"
       ]
       skill_names.each { |name| lines << "#{PARENTHETICAL_INDENT}  /#{name}" } if skill_names.any?
       lines += [
         '',
         "#{PARENTHETICAL_INDENT}Keyboard Shortcuts",
-        "#{PARENTHETICAL_INDENT}  ctrl+s         — send message",
-        "#{PARENTHETICAL_INDENT}  alt+enter      — send message",
-        "#{PARENTHETICAL_INDENT}  ctrl+c         — interrupt current action",
-        "#{PARENTHETICAL_INDENT}  ctrl+o         — compose in $EDITOR",
-        "#{PARENTHETICAL_INDENT}  ctrl+d         — exit",
-        "#{PARENTHETICAL_INDENT}  @              — fuzzy-find file mention (Esc keeps a literal @)",
-        "#{PARENTHETICAL_INDENT}  /              — fuzzy command picker (Esc keeps a literal /)",
+        "#{PARENTHETICAL_INDENT}  ctrl+s         — slide the note across",
+        "#{PARENTHETICAL_INDENT}  alt+enter      — same play, different key",
+        "#{PARENTHETICAL_INDENT}  ctrl+c         — cut the scene",
+        "#{PARENTHETICAL_INDENT}  ctrl+o         — step out and compose in $EDITOR",
+        "#{PARENTHETICAL_INDENT}  ctrl+d         — walk out, fade to black",
+        "#{PARENTHETICAL_INDENT}  @              — flip the evidence binder (Esc keeps a literal @)",
+        "#{PARENTHETICAL_INDENT}  /              — open the command index (Esc keeps a literal /)",
         ''
       ]
 
@@ -516,11 +516,11 @@ module Jules
     def print_model_usage(models: nil)
       puts
       tee("\n")
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(usage: /model <model-name>)#{RESET}"
-      tee("#{PARENTHETICAL_INDENT}(usage: /model <model-name>)\n")
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(swap coats with /model <model-name>)#{RESET}"
+      tee("#{PARENTHETICAL_INDENT}(swap coats with /model <model-name>)\n")
       if models&.any?
-        puts "#{COMMENT}#{PARENTHETICAL_INDENT}(available models:)#{RESET}"
-        tee("#{PARENTHETICAL_INDENT}(available models:)\n")
+        puts "#{COMMENT}#{PARENTHETICAL_INDENT}(the lineup:)#{RESET}"
+        tee("#{PARENTHETICAL_INDENT}(the lineup:)\n")
         models.each do |model_name|
           puts "#{COMMENT}#{PARENTHETICAL_INDENT}  - #{model_name}#{RESET}"
           tee("#{PARENTHETICAL_INDENT}  - #{model_name}\n")
@@ -710,6 +710,9 @@ module Jules
     end
 
     def print_error(message, raw: nil)
+      stage_direction = Script::ERROR_STAGE_DIRECTIONS.sample
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{stage_direction})#{RESET}"
+      tee("#{PARENTHETICAL_INDENT}(#{stage_direction})\n")
       puts "#{RED}Error: #{message}#{RESET}"
       tee("Error: #{message}\n")
       return unless raw
@@ -720,8 +723,8 @@ module Jules
 
     def print_compact_result(old_message_count, summary_text)
       puts
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{old_message_count} messages compacted into summary)#{RESET}"
-      tee("\n#{PARENTHETICAL_INDENT}(#{old_message_count} messages compacted into summary)\n")
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{old_message_count} pages of the transcript distilled to the bones)#{RESET}"
+      tee("\n#{PARENTHETICAL_INDENT}(#{old_message_count} pages of the transcript distilled to the bones)\n")
       screenplay_heading('JULES', color: PURPLE)
       puts render_markdown(summary_text)
       tee("#{summary_text}\n")

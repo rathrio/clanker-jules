@@ -12,6 +12,12 @@ This repository contains the source code for Jules, a terminal-based AI assistan
 - `lib/jules/tools/`: Individual tool implementations.
 - `lib/jules/skill.rb`: Skill loading/parsing from `~/.agents/skills/*/SKILL.md`.
 
+## Voice & UX
+- Jules is a neonoir detective running in a terminal. All user-facing strings (help text, hints, errors, prompts, stage directions) stay in this register.
+- Terminal concepts map to the metaphor: cursor/typewriter/reel (the stage), case file/transcript (conversation), coat/lineup (models), evidence binder (file picker), command index (slash picker), slide across / walk out / cut the scene (input actions).
+- Flavor-text pools (stage directions, entrance lines, transitions, etc.) live in `lib/jules/script.rb`. Add new variants there rather than hardcoding strings in `terminal.rb`.
+- Don't costume things that must stay scannable: `Error:` labels, raw debug output, ANSI escape constants, tool verbs in `TOOL_STAGE_DIRECTIONS`.
+
 ## Development Guidelines
 - Before implementing a new tool, review existing tool implementations for conventions and error handling (for example, `lib/jules/tools/edit_tool.rb`).
 - No LLM SDK gems: API communication should use Ruby standard library primitives (`net/http`, etc.).

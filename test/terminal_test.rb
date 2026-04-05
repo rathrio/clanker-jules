@@ -26,15 +26,15 @@ class TerminalTest < Minitest::Test
   def test_print_model_usage_shows_usage_only_without_models
     output = capture_io { Jules::Terminal.print_model_usage }.first
 
-    assert_includes output, '(usage: /model <model-name>)'
-    refute_includes output, '(available models:)'
+    assert_includes output, '(swap coats with /model <model-name>)'
+    refute_includes output, '(the lineup:)'
   end
 
   def test_print_model_usage_shows_available_models_when_provided
     output = capture_io { Jules::Terminal.print_model_usage(models: %w[gpt-4o gemini-flash-latest]) }.first
 
-    assert_includes output, '(usage: /model <model-name>)'
-    assert_includes output, '(available models:)'
+    assert_includes output, '(swap coats with /model <model-name>)'
+    assert_includes output, '(the lineup:)'
     assert_includes output, '- gpt-4o'
     assert_includes output, '- gemini-flash-latest'
   end
@@ -72,8 +72,8 @@ class TerminalTest < Minitest::Test
   def test_print_help_mentions_fuzzy_find_shortcut
     output = capture_io { Jules::Terminal.print_help }.first
 
-    assert_includes output, '@              — fuzzy-find file mention (Esc keeps a literal @)'
-    assert_includes output, '/              — fuzzy command picker (Esc keeps a literal /)'
+    assert_includes output, '@              — flip the evidence binder (Esc keeps a literal @)'
+    assert_includes output, '/              — open the command index (Esc keeps a literal /)'
   end
 
   def test_parse_slash_command_recognizes_known_skill_name

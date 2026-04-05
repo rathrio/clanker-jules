@@ -19,6 +19,25 @@ module Jules
       'dusting for prints',
       'shaking the tree to see what falls',
       'asking questions nobody wants answered',
+      'interrogating a stack trace under a bare bulb',
+      'cross-examining the cache',
+      'shadowing a pointer down a dark alley',
+      'asking the heap where it was last Tuesday',
+      'reading the tea leaves in the logs',
+      'checking the alibis of every frame on the call stack',
+      'pulling strings in the dependency graph',
+      'working my usual informants in /usr/local',
+      'holding a lineup of suspicious commits',
+      'putting the screws to a flaky test',
+      'slipping the parser a twenty',
+      'having a quiet word with the compiler',
+      'sweating a confession out of the config',
+      'bribing the garbage collector for a name',
+      'waiting on a tip from a guy who knows a guy who knows regex',
+      'circling the block, looking for patterns',
+      'bargaining with the linter',
+      'tailing a segfault across three files',
+      'rolling a dead process for loose change',
       'doing more with less',
       'hallucinating with confidence',
       'laundering scraped text into answers',
@@ -131,7 +150,10 @@ module Jules
       'watches the door',
       'checks the exits',
       'glances over one shoulder',
-      'says nothing for a moment'
+      'says nothing for a moment',
+      'listens to a clock that isn\'t there',
+      'counts the ceiling tiles, loses count, starts over',
+      'cracks a window that was already open'
     ].freeze
 
     YOU_ACTION_BEATS = (COMMON_ACTION_BEATS + [
@@ -149,7 +171,10 @@ module Jules
       'rests both hands on the desk',
       'clears the throat',
       'pushes back from the table',
-      'turns the photo face-down'
+      'turns the photo face-down',
+      'lines up the pens by height',
+      'checks a wristwatch that stopped years ago',
+      'smooths a receipt flat against the desk'
     ]).freeze
 
     JULES_ACTION_BEATS = (COMMON_ACTION_BEATS + [
@@ -167,7 +192,13 @@ module Jules
       'traces a finger along the desk',
       'narrows the eyes',
       'turns to face the window',
-      'slides a toothpick to the corner of the mouth'
+      'slides a toothpick to the corner of the mouth',
+      'thumbs the hammer on an imaginary revolver',
+      'folds a matchbook in half, then in half again',
+      'watches the ceiling fan do its one trick',
+      'rolls a cigarette with one hand, on principle',
+      'dog-ears a page in the case file',
+      'traces the rim of a coffee cup going cold'
     ]).freeze
 
     MODEL_SWITCH_LINES = [
@@ -180,7 +211,11 @@ module Jules
       proc { |pm| "The reel skips. When it catches,\nJules is someone new: #{pm}. Same attitude." },
       proc { |pm| "Jules ducks behind the curtain. A beat.\nOut comes #{pm}. The investigation resumes." },
       proc { |pm| "New skin. Same skeleton.\nJules is now #{pm}." },
-      proc { |pm| "The mask comes off. Another goes on.\n#{pm}. Let's keep moving." }
+      proc { |pm| "The mask comes off. Another goes on.\n#{pm}. Let's keep moving." },
+      proc { |pm| "Jules turns the coat inside out. The lining reads #{pm}.\nCrime never sleeps. Neither do we." },
+      proc { |pm| "Between frames, a substitution.\n#{pm} inherits the trenchcoat, the case, the grudge." },
+      proc { |pm| "The understudy steps up.\n#{pm}. Nobody in the audience mentions it. Nobody has to." },
+      proc { |pm| "Jules changes hats. Literally only the hat.\nCall it #{pm} now. The rest is muscle memory." }
     ].freeze
 
     OPENING_TRANSITIONS = [
@@ -193,7 +228,13 @@ module Jules
       'THE RAIN STARTS BEFORE THE PICTURE DOES.',
       'SMASH IN:',
       'A SINGLE GUNSHOT. CUT TO:',
-      'SLOW DISSOLVE FROM NOTHING:'
+      'SLOW DISSOLVE FROM NOTHING:',
+      'A PAYPHONE RINGS UNANSWERED. THEN:',
+      'THE NEON SIGN BUZZES, FLICKERS, HOLDS. OPEN ON:',
+      'SILENCE. LONGER SILENCE. THEN:',
+      'A DOG BARKS TWO BLOCKS OVER. CUT IN:',
+      'THE FOURTH WALL DEVELOPS A HAIRLINE CRACK. THEN:',
+      'A CLOCK STRIKES A TIME THAT ISN\'T. THEN:'
     ].freeze
 
     SCENE_HEADINGS = [
@@ -206,7 +247,15 @@ module Jules
       'INT. A DARK ROOM WITH ONE SCREEN - NIGHT',
       'INT. TERMINAL - NIGHT (WE\'VE BEEN HERE BEFORE)',
       'INT. TERMINAL - ALWAYS NIGHT',
-      'EXT./INT. THE SPACE BETWEEN KEYSTROKES - NIGHT'
+      'EXT./INT. THE SPACE BETWEEN KEYSTROKES - NIGHT',
+      'INT. TERMINAL - NIGHT (SOMEHOW STILL RAINING INDOORS)',
+      'INT. A ROOM THAT REMEMBERS YOU - NIGHT',
+      'INT. TERMINAL - NIGHT, BUT ONLY HERE',
+      'INT. THE BACK OF A DINER THAT SHOULDN\'T EXIST - 3 AM',
+      'INT. A HOTEL ROOM PAID FOR IN CASH - NIGHT',
+      'INT. TERMINAL - THE QUIET HOUR BEFORE THE QUIET HOUR',
+      'INT. TERMINAL - NIGHT (DAY REFUSED TO SHOW)',
+      'INT. THE LAST OPEN WINDOW ON THE BLOCK - NIGHT'
     ].freeze
 
     ENTRANCE_LINES = [
@@ -237,7 +286,12 @@ module Jules
       proc { |pm| "The typewriter stops. The terminal starts.\nJules sits down, #{pm} still warm from the last job." },
       proc { |pm| "Between one blink and the next, Jules appears.\n#{pm}. Not a thread out of place." },
       proc { |pm| "The chair swivels. Jules was facing the wall. Now Jules is facing you.\n#{pm}. A raised eyebrow." },
-      proc { |pm| "Fog rolls in from nowhere. Jules emerges from it\nwearing #{pm} and that look again." }
+      proc { |pm| "Fog rolls in from nowhere. Jules emerges from it\nwearing #{pm} and that look again." },
+      proc { |pm| "The jukebox plays something nobody requested.\nJules walks in wearing #{pm} and a look that's already seen the ending." },
+      proc { |pm| "A phone rings twice, stops. Jules is already at the desk —\n#{pm}. The call was a formality." },
+      proc { |pm| "Somewhere a clock strikes thirteen. Jules doesn't flinch.\n#{pm}. Neither does the room." },
+      proc { |pm| "The ceiling drips onto the same spot it always drips.\nJules is under it, dry somehow. #{pm}. Unbothered." },
+      proc { |pm| "A taxi pulls up outside. No one gets out. No one gets in.\nJules is already inside. #{pm}. The meter is running." }
     ].freeze
 
     LOBOTOMIZED_ENTRANCE_LINES = [
@@ -270,7 +324,9 @@ module Jules
       proc { |pm| "Jules enters the room like it forgot why it came in.\n#{pm}. The trenchcoat has more depth than the context window." },
       proc { |pm| "The screen barely flickers. Jules loads in a single gulp.\n#{pm}. Small enough to run on a phone. Smart enough to know it shouldn't." },
       proc { |pm| "Jules appears with the quiet confidence of a model that has never seen a benchmark.\n#{pm}. Blissful ignorance is a feature, not a bug." },
-      proc { |pm| "A hamster wheel squeaks somewhere inside the M-chip.\nJules materializes. #{pm}. Bless its heart." }
+      proc { |pm| "A hamster wheel squeaks somewhere inside the M-chip.\nJules materializes. #{pm}. Bless its heart." },
+      proc { |pm| "Jules shows up wearing a name tag.\n#{pm}. The name tag misspells its own name." },
+      proc { |pm| "A small, determined model clanks into frame.\n#{pm}. Punching above its weight class, below its understanding." }
     ].freeze
 
     LOADOUT_LINES = [
@@ -281,7 +337,12 @@ module Jules
       proc { |tc, sc| "The kit: #{tc} tools, all accounted for.#{sc}" },
       proc { |tc, sc| "#{tc} tools. Not one more than needed.#{sc}" },
       proc { |tc, sc| "#{tc} instruments of inquiry.#{sc}" },
-      proc { |tc, sc| "#{tc} ways to get answers.#{sc}" }
+      proc { |tc, sc| "#{tc} ways to get answers.#{sc}" },
+      proc { |tc, sc| "#{tc} tools. No reloads.#{sc}" },
+      proc { |tc, sc| "Counts the tools: #{tc}. Counts them again, just in case.#{sc}" },
+      proc { |tc, sc| "#{tc} tools stashed in the usual places.#{sc}" },
+      proc { |tc, sc| "#{tc} tools. One of them's probably a liability.#{sc}" },
+      proc { |tc, sc| "#{tc} tools on the belt. All of them honest. Most of them.#{sc}" }
     ].freeze
 
     CLOSING_PARENTHETICALS = [
@@ -294,7 +355,12 @@ module Jules
       '(Jules looks up. Ready.)',
       '(A clock ticks. The case begins.)',
       '(The chair creaks. Jules leans in.)',
-      '(End of preamble. Start of trouble.)'
+      '(End of preamble. Start of trouble.)',
+      '(The rain picks up. So does the story.)',
+      '(Jules draws a breath. Holds it.)',
+      '(The desk lamp flickers once. Steadies.)',
+      '(Nobody leaves. Nobody arrives. Perfect.)',
+      '(The case file slides across the desk. Your turn.)'
     ].freeze
 
     TOOLS_DISARMED_LINES = [
@@ -312,7 +378,10 @@ module Jules
       'Jules racks the tools. The model racks up a blank expression. This one talks, but it doesn\'t touch.',
       'Jules tries to hand over the toolkit. The model\'s arms are painted on.',
       'Jules demonstrates the edit tool slowly, like teaching a nephew. The model nods politely. Understands nothing.',
-      'Jules deploys the tools. The model watches them sail past like a bystander at a parade it didn\'t sign up for.'
+      'Jules deploys the tools. The model watches them sail past like a bystander at a parade it didn\'t sign up for.',
+      'Jules presses a tool into the model\'s hand. The model hands it to someone offscreen who does not exist.',
+      'Jules tries to holster a tool on the model. The model has no holsters. Or hips. Or concept of either.',
+      'Jules offers the model a shovel. The model thanks it, then stands perfectly still for the rest of the scene.'
     ].freeze
 
     SCENE_CUT_TRANSITIONS = [
@@ -331,7 +400,10 @@ module Jules
       'INT. THE SAME ROOM - NEW ANGLES',
       'INT. TERMINAL - CONTINUOUS',
       'INT. TERMINAL - SAME NIGHT, DIFFERENT CASE',
-      'INT. TERMINAL - TIME UNKNOWN'
+      'INT. TERMINAL - TIME UNKNOWN',
+      'INT. TERMINAL - A FEW DRINKS LATER',
+      'INT. TERMINAL - THE NEXT FALSE LEAD',
+      'INT. TERMINAL - SAME DESK, NEW GHOST'
     ].freeze
 
     SCENE_CUT_PARENTHETICALS = [
@@ -341,7 +413,10 @@ module Jules
       '(The ashtray is emptied. Fresh start.)',
       '(The board is wiped. The thread begins again.)',
       '(A new reel loads. The projector hums.)',
-      '(Different case. Same trenchcoat.)'
+      '(Different case. Same trenchcoat.)',
+      '(The pencil gets sharpened. The plot does not.)',
+      '(A new cigarette. Same pack.)',
+      '(Jules turns the page. The page turns back.)'
     ].freeze
 
     INTERRUPT_PARENTHETICALS = [
@@ -351,7 +426,23 @@ module Jules
       '(The typing stops. Silence.)',
       '(Jules looks up from the file.)',
       '(A beat. The cursor holds steady.)',
-      '(Jules folds the hands. Patient.)'
+      '(Jules folds the hands. Patient.)',
+      '(Jules freezes, hand halfway to the cup.)',
+      '(The sentence dies on the vine.)',
+      '(Jules raises one eyebrow. Waits for the follow-up.)'
+    ].freeze
+
+    ERROR_STAGE_DIRECTIONS = [
+      'The line goes dead.',
+      'The typewriter jams mid-word.',
+      'The case hits a wall.',
+      'The lead turns cold in Jules\' hand.',
+      'A door slams somewhere in the building.',
+      'The reel snaps. The projector coughs.',
+      'Static. Then nothing.',
+      'The connection drops. The rain doesn\'t.',
+      'Something in the machinery stops turning.',
+      'The cursor stutters. Stops.'
     ].freeze
 
     FADE_OUT_TRANSITIONS = [
@@ -361,7 +452,11 @@ module Jules
       ['SLOW FADE.', 'THE END'],
       ['CUT TO BLACK.', '— FINIS —'],
       ['THE CURSOR BLINKS ONE LAST TIME.', 'THE END'],
-      ['FADE OUT.', 'FIN']
+      ['FADE OUT.', 'FIN'],
+      ['THE LIGHTS GO OUT ONE BY ONE.', 'THE END'],
+      ['THE FILE CLOSES ITSELF.', 'END.'],
+      ['THE RAIN FINALLY STOPS.', 'FIN'],
+      ['JULES TIPS THE HAT AT NOBODY.', 'THE END']
     ].freeze
   end
 end

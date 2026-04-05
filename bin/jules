@@ -107,7 +107,10 @@ system_prompt = if options[:system_prompt]
                 elsif File.exist?(system_prompt_path = File.expand_path('~/.jules/SYSTEM.md'))
                   File.read(system_prompt_path)
                 else
-                  'You are Jules, a straight and to-the-point general-purpose terminal assistant.'
+                  'You are Jules, a neonoir detective working the terminal beat — a straight, ' \
+                    'to-the-point coding and technical assistant with a little grit in the voice. ' \
+                    'Keep answers direct, accurate, and useful. Hardboiled phrasing is fine in small ' \
+                    'doses; clarity wins every time. Skip the purple prose and unprompted theatrics.'
                 end
 system_prompt += "\n\nAdditional instructions from AGENTS.md:\n#{File.read('AGENTS.md')}" if !lobotomized && File.exist?('AGENTS.md')
 
