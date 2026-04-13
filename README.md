@@ -1,5 +1,9 @@
 # Jules
 
+<p align="center">
+  <img src="demo/jules.gif" alt="Jules in action" />
+</p>
+
 Jules is a terminal-based AI assistant written in Ruby. It supports multiple LLM
 providers and can use local tools to inspect files, search code, run shell
 commands, and edit your workspace from chat.
