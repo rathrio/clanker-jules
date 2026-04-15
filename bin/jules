@@ -49,10 +49,15 @@ end.parse!
 
 options[:model] = nil if provider_set_by_cli && !model_set_by_cli
 
+unless Jules::Provider.all_names.include?(options[:provider])
+  warn "Unknown provider '#{options[:provider]}'. Use #{Jules::Provider.all_names.join(', ')}."
+  exit 1
+end
+
 begin
   provider = Jules::Provider.build(options[:provider], model: options[:model])
-rescue KeyError
-  warn "Unknown provider '#{options[:provider]}'. Use #{Jules::Provider.all_names.join(', ')}."
+rescue KeyError => e
+  warn "Provider '#{options[:provider]}' configuration error: #{e.message}"
   exit 1
 end
 

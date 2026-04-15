@@ -15,6 +15,7 @@ module Jules
     register_provider 'kiro', preset: :kiro
     register_provider 'apfel', preset: :apfel
     register_provider 'ollama', preset: :ollama
+    register_provider 'swissai', preset: :swissai
 
     OPENAI_COMPATIBLE_DEFAULTS = {
       provider_label: 'OpenRouter',
@@ -52,10 +53,20 @@ module Jules
       max_tokens: 4096
     }.freeze
 
+    SWISSAI_DEFAULTS = {
+      provider_label: 'Swiss AI',
+      base_url: ENV.fetch('SWISSAI_BASE_URL', 'https://inference.swissai.cscs.ch/v1/chat/completions'),
+      api_key_env: nil,
+      api_key_fallback: 'unused',
+      default_model: 'Qwen/Qwen2.5-Coder-32B-Instruct',
+      max_tokens: 4096
+    }.freeze
+
     PRESET_DEFAULTS = {
       kiro: KIRO_DEFAULTS,
       apfel: APFEL_DEFAULTS,
-      ollama: OLLAMA_DEFAULTS
+      ollama: OLLAMA_DEFAULTS,
+      swissai: SWISSAI_DEFAULTS
     }.freeze
 
     def initialize(model: nil, preset: nil, base_url: nil, api_key: nil, max_tokens: nil)
