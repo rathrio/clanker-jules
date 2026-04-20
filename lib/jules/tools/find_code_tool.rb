@@ -156,7 +156,7 @@ module Jules
       run_and_format(command, "name '#{name}'", base_path, max_results)
     end
 
-    def search_by_pattern(pattern, lang, base_path, max_results, include_globs, exclude_globs) # rubocop:disable Metrics/ParameterLists
+    def search_by_pattern(pattern, lang, base_path, max_results, include_globs, exclude_globs)
       command = ['ast-grep', 'run', '--pattern', pattern, '--json=stream']
       command.push('--lang', lang) unless blank?(lang)
       append_globs(command, include_globs, exclude_globs)

@@ -88,6 +88,22 @@ class TerminalTest < Minitest::Test
     assert_equal :compact, command
   end
 
+  def test_parse_slash_command_recognizes_stakeout
+    assert_equal :stakeout, Jules::Terminal.parse_slash_command('/stakeout')
+  end
+
+  def test_slash_command_candidates_include_stakeout
+    candidates = Jules::Terminal.slash_command_candidates(skill_names: [], model_names: nil)
+
+    assert_includes candidates.map { |c| c[:value] }, '/stakeout'
+  end
+
+  def test_print_help_mentions_stakeout
+    output = capture_io { Jules::Terminal.print_help }.first
+
+    assert_includes output, '/stakeout'
+  end
+
   def test_parse_slash_command_ignores_unknown_skill_name
     command = Jules::Terminal.parse_slash_command('/unknown', skill_names: ['obsidian'])
 

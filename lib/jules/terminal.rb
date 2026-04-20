@@ -420,7 +420,8 @@ module Jules
         { value: '/compact', label: '/compact' },
         { value: '/clear', label: '/clear' },
         { value: '/new', label: '/new' },
-        { value: '/model', label: '/model' }
+        { value: '/model', label: '/model' },
+        { value: '/stakeout', label: '/stakeout' }
       ]
 
       skills = skill_names.sort.map do |name|
@@ -441,6 +442,7 @@ module Jules
       when '/clear', '/new' then :clear
       when '/compact' then :compact
       when '/help' then :help
+      when '/stakeout' then :stakeout
       when %r{^/model\s+(.+)}i then [:model, Regexp.last_match(1).strip]
       when '/model' then [:model, nil]
       when %r{^/([^\s]+)$}
@@ -457,7 +459,8 @@ module Jules
         "#{PARENTHETICAL_INDENT}  /compact       — trim the case file, keep the leads",
         "#{PARENTHETICAL_INDENT}  /clear, /new   — fresh reel, new case",
         "#{PARENTHETICAL_INDENT}  /model         — read the lineup",
-        "#{PARENTHETICAL_INDENT}  /model <name>  — change the coat"
+        "#{PARENTHETICAL_INDENT}  /model <name>  — change the coat",
+        "#{PARENTHETICAL_INDENT}  /stakeout      — drop the tools, watch the wire (one way)"
       ]
       skill_names.each { |name| lines << "#{PARENTHETICAL_INDENT}  /#{name}" } if skill_names.any?
       lines += [
@@ -530,7 +533,7 @@ module Jules
       tee("\n")
     end
 
-    def print_opening_scene(provider_label, model, tool_count:, skill_names: [], lobotomized: false)
+    def print_opening_scene(provider_label, model, tool_count:, skill_names: [], lobotomized: false, stakeout: false)
       provider_model_colored = "#{PURPLE}#{BOLD}#{provider_label}'s #{model}#{RESET}#{COMMENT}"
       provider_model_plain = "#{provider_label}'s #{model}"
 
@@ -544,7 +547,13 @@ module Jules
       tee("#{scene}\n")
       puts
       tee("\n")
-      entrance_lines = lobotomized ? Script::LOBOTOMIZED_ENTRANCE_LINES : Script::ENTRANCE_LINES
+      entrance_lines = if stakeout
+                         Script::STAKEOUT_ENTRANCE_LINES
+                       elsif lobotomized
+                         Script::LOBOTOMIZED_ENTRANCE_LINES
+                       else
+                         Script::ENTRANCE_LINES
+                       end
       entrance_template = entrance_lines.sample
       entrance_template.call(provider_model_colored).each_line do |line|
         puts "#{COMMENT}#{line.chomp}#{RESET}"
@@ -566,6 +575,23 @@ module Jules
       closing = Script::CLOSING_PARENTHETICALS.sample
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{closing}#{RESET}"
       tee("#{PARENTHETICAL_INDENT}#{closing}\n")
+    end
+
+    def print_stakeout_engaged
+      line = Script::STAKEOUT_ENGAGED_LINES.sample
+      puts
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{line})#{RESET}"
+      tee("\n#{PARENTHETICAL_INDENT}(#{line})\n")
+      puts
+      tee("\n")
+    end
+
+    def print_stakeout_already_active
+      puts
+      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(Already on stakeout. Eyes still on the wire.)#{RESET}"
+      tee("\n#{PARENTHETICAL_INDENT}(Already on stakeout. Eyes still on the wire.)\n")
+      puts
+      tee("\n")
     end
 
     def print_assistant(text, elapsed: nil)

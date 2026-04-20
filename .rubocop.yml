@@ -39,3 +39,6 @@ Metrics/PerceivedComplexity:
 
 Minitest/MultipleAssertions:
   Enabled: false
+
+Metrics/ParameterLists:
+  Max: 6

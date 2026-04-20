@@ -330,6 +330,65 @@ module Jules
       proc { |pm| "A small, determined model clanks into frame.\n#{pm}. Punching above its weight class, below its understanding." }
     ].freeze
 
+    STAKEOUT_ENTRANCE_LINES = [
+      proc { |pm| "Jules slides into the booth across the street.\n#{pm}, no sidearm. Just eyes, ears, and a notebook." },
+      proc { |pm| "The car door eases shut. Window cracked an inch.\nJules settles in with #{pm}. Tonight is watch only." },
+      proc { |pm| "A long lens. A cold coffee. A cigarette unlit.\nJules runs #{pm} on stakeout — observe, don't engage." },
+      proc { |pm| "The shell is locked. The keys are in the desk back at the office.\nJules works #{pm} from the curb. Hands stay clean." },
+      proc { |pm| "Jules parks across from the case file and kills the engine.\n#{pm} hums. The toolkit stays in the trunk." },
+      proc { |pm| "Stakeout protocol: no contact, no edits, no trace.\nJules wears #{pm} like a press pass — look, don't touch." },
+      proc { |pm| "The blinds are down at the safe house. Jules watches from the fire escape.\n#{pm} on the wire. Hands in the pockets." },
+      proc { |pm| "Jules empties the holsters. No bash, no edit, no write.\n#{pm} only. Tonight the job is to see, not to move." },
+      proc { |pm| "A stakeout is a long way of saying 'patience.'\nJules brings #{pm}, a thermos, and the discipline to keep both hands off." },
+      proc { |pm| "The radio crackles. 'Eyes only,' it says.\nJules acknowledges. #{pm}. The shell stays sheathed." },
+      proc { |pm| "Eight floors up, blinds half-cracked. Jules dials in #{pm}.\nThe lens is long, the breath is shallow." },
+      proc { |pm| "An unmarked van idles two blocks down.\nJules inside with #{pm}, a thermos, and the patience of a saint who lapsed." },
+      proc { |pm| "The mark doesn't know they have an audience.\nJules makes sure of it. #{pm} on dim. Notepad open." },
+      proc { |pm| "Jules wipes dew off the windshield with a sleeve.\n#{pm} comes online. The block stays quiet." },
+      proc { |pm| "A motel across the street. A camera with a longer lens than zoning would allow.\nJules logs in as #{pm}. No flash. No movement." },
+      proc { |pm| "The radio is off. The headlights are off. Even the watch is on silent.\nJules runs #{pm} in the dark. Just the case." },
+      proc { |pm| "Jules cracks a sunflower seed between molars. Spits the shell into a paper cup.\n#{pm}. Hour three. Counting." },
+      proc { |pm| "A tape recorder under the dash. A second one in the glovebox for backup.\nJules monitors with #{pm}. The mark hasn't moved in forty minutes." },
+      proc { |pm| "The streetlight on the corner buzzes and dies. Jules notes it. Doesn't move.\n#{pm}. Eyes adjust to the dark." },
+      proc { |pm| "Jules sets the binoculars on the dash like a sleeping cat.\n#{pm}. The shift is long. The job is small." },
+      proc { |pm| "From the rooftop, the city looks like a wiring diagram.\nJules reads it with #{pm}. No fingerprints. No footprints." },
+      proc { |pm| "A coffee shop window seat at 2 AM. Jules doesn't drink the coffee.\n#{pm}. The mark passes by twice. Doesn't see anything worth seeing." },
+      proc { |pm| "The fire escape groans under Jules' weight. Then settles.\n#{pm}. The window across the alley stays lit. So does Jules." },
+      proc { |pm| "A pay-by-the-hour office, fourth floor, view of the loading dock.\nJules sets up #{pm}. Brings nothing that can break. Touches nothing that can be traced." },
+      proc { |pm| "Jules tunes the scanner to a frequency the city forgot it owned.\n#{pm}. Static. Then pattern. Then nothing again." },
+      proc { |pm| "The dashboard clock reads 03:47. The mark hasn't come home.\nJules waits with #{pm}. Some leads are made by sitting still." },
+      proc { |pm| "Across the boulevard, a window goes dark. Then bright again.\nJules clocks it with #{pm}. Notes the minute. Notes the second." },
+      proc { |pm| "Jules trades the trenchcoat for a delivery uniform nobody questions.\n#{pm} riding shotgun. Cover holds. The view is excellent." },
+      proc { |pm| "A diner booth in the corner, back to the wall, both exits in view.\nJules orders nothing. Watches everything. #{pm} between the napkins." }
+    ].freeze
+
+    STAKEOUT_ENGAGED_LINES = [
+      'Jules pockets the keys. From here on, eyes only.',
+      'The toolkit goes back in the trunk. Stakeout begins.',
+      'Jules holsters the bash. Holsters the edit. Holsters the write. Settles in to watch.',
+      'A long breath. The hands come off the keys. Observation only.',
+      'Jules pulls the brim down. No contact. No edits. Just the wire.',
+      'The shell goes cold. Jules switches to look-and-listen.',
+      'Stakeout. Jules trades the toolbelt for a notebook.',
+      'Jules puts the gloves on the dash. Tonight is hands-off.',
+      'Jules cuts the engine. Kills the lights. Switches to listen-only.',
+      'The toolbelt comes off. The notebook comes out. Stakeout.',
+      'Jules locks the keyboard in the glovebox. Eyes on the wire from here on out.',
+      'Jules leans the chair back, hands behind the head. No more moves. Just watching.',
+      'A long, slow breath. Jules sets the tools aside. Tonight is observation only.',
+      'Jules taps the brakes on the impulse to act. Coasts the rest of the way in.',
+      'The hammer goes back in the drawer. Jules picks up the magnifying glass instead.',
+      'Jules signals the dispatcher: hold position. No contact until further notice.',
+      'The fingers come off the trigger. The eyes stay on the door.',
+      'Jules pulls the brim low. From here it\'s all watch and wait.',
+      'The shop closes. The watch begins. Jules folds the arms.',
+      'Jules switches the radio to receive-only. The mic stays cold.',
+      'Tools off. Eyes on. The reel rolls without anyone touching the projector.',
+      'Jules puts the pen down. Picks up the binoculars.',
+      'A nod to nobody. Jules slips into stakeout posture and stays there.',
+      'Jules drops the keys in the ashtray. Settles in for the long quiet.'
+    ].freeze
+
     LOADOUT_LINES = [
       proc { |tc, sc| "#{tc} tools on the hip.#{sc}" },
       proc { |tc, sc| "#{tc} tools in the coat.#{sc}" },

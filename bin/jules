@@ -37,6 +37,10 @@ OptionParser.new do |opts|
     options[:bare] = true
   end
 
+  opts.on('--stakeout', 'Stakeout mode: read-only — no shell, no edits, no writes') do
+    options[:stakeout] = true
+  end
+
   opts.on('-l', '--list-models', 'List models for the selected provider and exit') do
     options[:list_models] = true
   end
@@ -99,12 +103,15 @@ tools = if bare
           Jules::Tool.declarations(format: provider.tool_format, only: tool_names)
         end
 
+stakeout = options[:stakeout] ? true : false
+
 Jules::Terminal.start_screenplay_buffer
 Jules::Terminal.print_opening_scene(
   provider.provider_label, provider.model,
   tool_count: tools.size,
   skill_names: skills.keys,
-  lobotomized: lobotomized
+  lobotomized: lobotomized,
+  stakeout: stakeout
 )
 
 system_prompt = if options[:system_prompt]
@@ -130,5 +137,6 @@ Jules::Chat.new(
   provider: provider,
   tools: tools,
   system_prompt: system_prompt,
-  chats_dir: chats_dir
+  chats_dir: chats_dir,
+  stakeout: stakeout
 ).run

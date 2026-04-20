@@ -85,6 +85,7 @@ module Jules
     end
 
     LOBOTOMIZED_TOOLS = %w[read write edit bash].freeze
+    STAKEOUT_TOOLS = %w[read glob search findcode webfetch memory loadskill notification].freeze
 
     def self.declarations(format:, only: nil)
       tools = only ? all.select { |t| only.include?(t.tool_name) } : all
@@ -106,7 +107,16 @@ module Jules
       end
     end
 
-    def self.call(name, args)
+    def self.call(name, args, allowed = nil)
+      if allowed && !allowed.include?(name)
+        return Jules::Result.err(
+          code: 'tool_blocked_stakeout',
+          message: "Stakeout rules: '#{name}' is off the table. Jules is observing only — " \
+                   'no shell, no edits, no writes. Report findings instead.',
+          detail: { tool_name: name, allowed: allowed.to_a }
+        )
+      end
+
       result = find(name).new.call(args)
       Jules::Result.ok(result)
     rescue StandardError => e
