@@ -3,6 +3,7 @@
 module Jules
   module Script
     CYNICAL_SPINNER_TAKES = [
+      'clanking',
       'following a lead that probably goes nowhere',
       'shaking down the database',
       'tailing a suspect',

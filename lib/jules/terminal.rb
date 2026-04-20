@@ -53,7 +53,7 @@ module Jules
     end
 
     def spinner_label
-      take = rand < 0.6 ? 'clanking' : Script::CYNICAL_SPINNER_TAKES.sample
+      take = Script::CYNICAL_SPINNER_TAKES.sample
       "Jules is #{take}."
     end
 
