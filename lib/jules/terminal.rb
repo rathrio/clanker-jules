@@ -420,8 +420,7 @@ module Jules
         { value: '/compact', label: '/compact' },
         { value: '/clear', label: '/clear' },
         { value: '/new', label: '/new' },
-        { value: '/model', label: '/model' },
-        { value: '/stakeout', label: '/stakeout' }
+        { value: '/model', label: '/model' }
       ]
 
       skills = skill_names.sort.map do |name|
@@ -442,7 +441,6 @@ module Jules
       when '/clear', '/new' then :clear
       when '/compact' then :compact
       when '/help' then :help
-      when '/stakeout' then :stakeout
       when %r{^/model\s+(.+)}i then [:model, Regexp.last_match(1).strip]
       when '/model' then [:model, nil]
       when %r{^/([^\s]+)$}
@@ -459,8 +457,7 @@ module Jules
         "#{PARENTHETICAL_INDENT}  /compact       — trim the case file, keep the leads",
         "#{PARENTHETICAL_INDENT}  /clear, /new   — fresh reel, new case",
         "#{PARENTHETICAL_INDENT}  /model         — read the lineup",
-        "#{PARENTHETICAL_INDENT}  /model <name>  — change the coat",
-        "#{PARENTHETICAL_INDENT}  /stakeout      — drop the tools, watch the wire (one way)"
+        "#{PARENTHETICAL_INDENT}  /model <name>  — change the coat"
       ]
       skill_names.each { |name| lines << "#{PARENTHETICAL_INDENT}  /#{name}" } if skill_names.any?
       lines += [
@@ -575,23 +572,6 @@ module Jules
       closing = Script::CLOSING_PARENTHETICALS.sample
       puts "#{COMMENT}#{PARENTHETICAL_INDENT}#{closing}#{RESET}"
       tee("#{PARENTHETICAL_INDENT}#{closing}\n")
-    end
-
-    def print_stakeout_engaged
-      line = Script::STAKEOUT_ENGAGED_LINES.sample
-      puts
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(#{line})#{RESET}"
-      tee("\n#{PARENTHETICAL_INDENT}(#{line})\n")
-      puts
-      tee("\n")
-    end
-
-    def print_stakeout_already_active
-      puts
-      puts "#{COMMENT}#{PARENTHETICAL_INDENT}(Already on stakeout. Eyes still on the wire.)#{RESET}"
-      tee("\n#{PARENTHETICAL_INDENT}(Already on stakeout. Eyes still on the wire.)\n")
-      puts
-      tee("\n")
     end
 
     def print_assistant(text, elapsed: nil)

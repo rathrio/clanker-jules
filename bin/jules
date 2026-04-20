@@ -94,16 +94,19 @@ if options[:list_models]
 end
 
 bare = options[:bare]
+stakeout = options[:stakeout] ? true : false
 skills = bare ? {} : Jules::Skill.all
 lobotomized = bare || provider.lobotomized?
-tools = if bare
-          []
-        else
-          tool_names = lobotomized ? Jules::Tool::LOBOTOMIZED_TOOLS : nil
-          Jules::Tool.declarations(format: provider.tool_format, only: tool_names)
-        end
 
-stakeout = options[:stakeout] ? true : false
+tool_names = if lobotomized && stakeout
+               Jules::Tool::LOBOTOMIZED_TOOLS & Jules::Tool::STAKEOUT_TOOLS
+             elsif lobotomized
+               Jules::Tool::LOBOTOMIZED_TOOLS
+             elsif stakeout
+               Jules::Tool::STAKEOUT_TOOLS
+             end
+tools = bare ? [] : Jules::Tool.declarations(format: provider.tool_format, only: tool_names)
+allowed_tools = stakeout ? Jules::Tool::STAKEOUT_TOOLS : nil
 
 Jules::Terminal.start_screenplay_buffer
 Jules::Terminal.print_opening_scene(
@@ -133,10 +136,16 @@ unless skills.empty?
   system_prompt += "\n\nThe following skills are available:\n#{skill_definitions.join("\n")}"
 end
 
+if stakeout
+  system_prompt += "\n\nYou are on stakeout: observe and report only. Do not modify files, " \
+                   'run shell commands, or change system state under any circumstances. ' \
+                   'The write, edit, and bash tools are off the table — even if asked.'
+end
+
 Jules::Chat.new(
   provider: provider,
   tools: tools,
   system_prompt: system_prompt,
   chats_dir: chats_dir,
-  stakeout: stakeout
+  allowed_tools: allowed_tools
 ).run

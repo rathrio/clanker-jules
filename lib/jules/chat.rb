@@ -4,19 +4,13 @@ require 'fileutils'
 
 module Jules
   class Chat
-    STAKEOUT_NUDGE = <<~NUDGE.chomp
-      You are on stakeout. Observe and report only. Under no circumstances modify files,
-      run shell commands, or change system state. The write, edit, and bash tools are off
-      the table — even if asked. Surface findings; do not act on them.
-    NUDGE
-
-    def initialize(provider:, tools:, system_prompt:, chats_dir:, terminal: Jules::Terminal, stakeout: false)
+    def initialize(provider:, tools:, system_prompt:, chats_dir:, terminal: Jules::Terminal, allowed_tools: nil)
       @provider = provider
       @tools = tools
       @system_prompt = system_prompt
       @chats_dir = chats_dir
       @terminal = terminal
-      @stakeout = stakeout
+      @allowed_tools = allowed_tools
       @messages = []
       @session_started_at = nil
       @provider_models_cache = :unset
@@ -80,7 +74,7 @@ module Jules
     def process_model_turn(started_at)
       loop do
         response_result = @terminal.with_spinner(leading_newline: true) do
-          @provider.generate_content(@messages, effective_tools, system_prompt: effective_system_prompt)
+          @provider.generate_content(@messages, @tools, system_prompt: @system_prompt)
         end
 
         if response_result.err?
@@ -136,7 +130,7 @@ module Jules
         summary = tool_class&.execution_summary(call[:args])
         @terminal.print_tool_execution(call[:name], summary)
 
-        result = Jules::Tool.call(call[:name], call[:args], stakeout_allowed_tools)
+        result = Jules::Tool.call(call[:name], call[:args], @allowed_tools)
         tool_output = result.ok? ? result.value : result.message
         @terminal.print_tool_preview(call[:name], tool_output)
         { function_response: { name: call[:name], result: tool_output, id: call[:id] } }
@@ -164,22 +158,10 @@ module Jules
       when :help
         @terminal.print_help(skill_names: Jules::Skill.all.keys)
         true
-      when :stakeout
-        enter_stakeout
-        true
       when Array
         handle_structured_slash_command?(command)
       else
         false
-      end
-    end
-
-    def enter_stakeout
-      if @stakeout
-        @terminal.print_stakeout_already_active
-      else
-        @stakeout = true
-        @terminal.print_stakeout_engaged
       end
     end
 
@@ -226,7 +208,7 @@ module Jules
 
       summary_text = @terminal.with_spinner(label: 'compacting', leading_newline: true) do
         summary_messages = @messages + [Jules::Message.new('user', [{ text: COMPACT_PROMPT }])]
-        result = @provider.generate_content(summary_messages, [], system_prompt: effective_system_prompt)
+        result = @provider.generate_content(summary_messages, [], system_prompt: @system_prompt)
         next nil if result.err?
 
         parsed = @provider.parse_response(result.value)
@@ -268,26 +250,6 @@ module Jules
       return @provider_models_cache unless @provider_models_cache == :unset
 
       @provider_models_cache = list_provider_models
-    end
-
-    def effective_tools
-      return @tools unless @stakeout
-
-      @tools.select { |decl| Jules::Tool::STAKEOUT_TOOLS.include?(declaration_tool_name(decl)) }
-    end
-
-    def declaration_tool_name(decl)
-      decl[:name] || decl.dig(:function, :name)
-    end
-
-    def effective_system_prompt
-      return @system_prompt unless @stakeout
-
-      "#{@system_prompt}\n\n#{STAKEOUT_NUDGE}"
-    end
-
-    def stakeout_allowed_tools
-      @stakeout ? Jules::Tool::STAKEOUT_TOOLS : nil
     end
 
     def tee_user_input(input)
