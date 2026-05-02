@@ -16,6 +16,7 @@ module Jules
     register_provider 'apfel', preset: :apfel
     register_provider 'ollama', preset: :ollama
     register_provider 'swissai', preset: :swissai
+    register_provider 'mlx', preset: :mlx
 
     OPENAI_COMPATIBLE_DEFAULTS = {
       provider_label: 'OpenRouter',
@@ -62,11 +63,21 @@ module Jules
       max_tokens: 4096
     }.freeze
 
+    MLX_DEFAULTS = {
+      provider_label: 'MLX',
+      base_url: ENV.fetch('MLX_BASE_URL', 'http://localhost:8080/v1/chat/completions'),
+      api_key_env: nil,
+      api_key_fallback: 'unused',
+      default_model: 'mlx-community/gemma-4-26b-a4b-it-4bit',
+      max_tokens: 4096
+    }.freeze
+
     PRESET_DEFAULTS = {
       kiro: KIRO_DEFAULTS,
       apfel: APFEL_DEFAULTS,
       ollama: OLLAMA_DEFAULTS,
-      swissai: SWISSAI_DEFAULTS
+      swissai: SWISSAI_DEFAULTS,
+      mlx: MLX_DEFAULTS
     }.freeze
 
     def initialize(model: nil, preset: nil, base_url: nil, api_key: nil, max_tokens: nil)
