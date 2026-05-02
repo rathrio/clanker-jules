@@ -24,21 +24,21 @@ class OpenAICompatibleProviderTest < Minitest::Test
     ENV.delete('OPENROUTER_API_KEY')
   end
 
-  def test_mlx_provider_initializes_without_api_key
-    provider = Jules::OpenAICompatibleProvider.new(preset: :mlx)
+  def test_llamacpp_provider_initializes_without_api_key
+    provider = Jules::OpenAICompatibleProvider.new(preset: :llamacpp)
 
-    assert_equal 'MLX', provider.provider_label
-    assert_equal 'mlx-community/gemma-4-26b-a4b-it-4bit', provider.model
+    assert_equal 'llama.cpp', provider.provider_label
+    assert_equal 'gemma-4-26b-a4b-it', provider.model
     refute_predicate provider, :lobotomized?
   end
 
-  def test_mlx_provider_respects_model_override
-    provider = Jules::OpenAICompatibleProvider.new(preset: :mlx, model: 'mlx-community/gemma-4-E4B-it-4bit')
+  def test_llamacpp_provider_respects_model_override
+    provider = Jules::OpenAICompatibleProvider.new(preset: :llamacpp, model: 'gemma-4-E4B-it')
 
-    assert_equal 'mlx-community/gemma-4-E4B-it-4bit', provider.model
+    assert_equal 'gemma-4-E4B-it', provider.model
   end
 
-  def test_mlx_provider_registered_under_mlx_name
-    assert_includes Jules::Provider.all_names, 'mlx'
+  def test_llamacpp_provider_registered_under_llamacpp_name
+    assert_includes Jules::Provider.all_names, 'llamacpp'
   end
 end

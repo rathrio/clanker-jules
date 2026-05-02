@@ -14,9 +14,8 @@ module Jules
     register_provider 'openrouter', preset: :openrouter
     register_provider 'kiro', preset: :kiro
     register_provider 'apfel', preset: :apfel
-    register_provider 'ollama', preset: :ollama
     register_provider 'swissai', preset: :swissai
-    register_provider 'mlx', preset: :mlx
+    register_provider 'llamacpp', preset: :llamacpp
 
     OPENAI_COMPATIBLE_DEFAULTS = {
       provider_label: 'OpenRouter',
@@ -45,15 +44,6 @@ module Jules
       lobotomized: true
     }.freeze
 
-    OLLAMA_DEFAULTS = {
-      provider_label: 'Ollama',
-      base_url: 'http://localhost:11434/v1/chat/completions',
-      api_key_env: nil,
-      api_key_fallback: 'unused',
-      default_model: 'qwen2.5-coder:14b',
-      max_tokens: 4096
-    }.freeze
-
     SWISSAI_DEFAULTS = {
       provider_label: 'Swiss AI',
       base_url: ENV.fetch('SWISSAI_BASE_URL', 'https://inference.swissai.cscs.ch/v1/chat/completions'),
@@ -63,21 +53,20 @@ module Jules
       max_tokens: 4096
     }.freeze
 
-    MLX_DEFAULTS = {
-      provider_label: 'MLX',
-      base_url: ENV.fetch('MLX_BASE_URL', 'http://localhost:8080/v1/chat/completions'),
+    LLAMACPP_DEFAULTS = {
+      provider_label: 'llama.cpp',
+      base_url: ENV.fetch('LLAMACPP_BASE_URL', 'http://localhost:8080/v1/chat/completions'),
       api_key_env: nil,
       api_key_fallback: 'unused',
-      default_model: 'mlx-community/gemma-4-26b-a4b-it-4bit',
+      default_model: 'gemma-4-26b-a4b-it',
       max_tokens: 4096
     }.freeze
 
     PRESET_DEFAULTS = {
       kiro: KIRO_DEFAULTS,
       apfel: APFEL_DEFAULTS,
-      ollama: OLLAMA_DEFAULTS,
       swissai: SWISSAI_DEFAULTS,
-      mlx: MLX_DEFAULTS
+      llamacpp: LLAMACPP_DEFAULTS
     }.freeze
 
     def initialize(model: nil, preset: nil, base_url: nil, api_key: nil, max_tokens: nil)
