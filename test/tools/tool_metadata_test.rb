@@ -9,7 +9,6 @@ class ToolMetadataTest < Minitest::Test
     Jules::FindCodeTool,
     Jules::GlobTool,
     Jules::LoadSkillTool,
-    Jules::MemoryTool,
     Jules::NotificationTool,
     Jules::ReadTool,
     Jules::SearchTool,
@@ -47,12 +46,6 @@ class ToolMetadataTest < Minitest::Test
     summary = Jules::LoadSkillTool.execution_summary('name' => 'commit')
 
     assert_equal 'commit', summary[:detail]
-  end
-
-  def test_memory_tool_execution_summary_wraps_query_in_quotes
-    summary = Jules::MemoryTool.execution_summary('query' => 'deploy failure')
-
-    assert_equal '"deploy failure"', summary[:detail]
   end
 
   def test_notification_tool_execution_summary_surfaces_message

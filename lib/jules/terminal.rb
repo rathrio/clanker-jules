@@ -668,7 +668,6 @@ module Jules
       'findcode' => { verb: 'looks up',                    color: GREEN },
       'webfetch' => { verb: 'fetches',                     color: PINK },
       'loadskill' => { verb: 'loads skill', color: PURPLE },
-      'memory' => { verb: 'recalls', color: PURPLE },
       'notification' => { verb: 'notifies', color: COMMENT }
     }.freeze
 

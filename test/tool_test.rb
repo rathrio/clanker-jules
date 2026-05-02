@@ -85,7 +85,7 @@ class ToolTest < Minitest::Test
   end
 
   def test_stakeout_tools_includes_read_only_inspectors
-    %w[read glob search findcode webfetch memory].each do |name|
+    %w[read glob search findcode webfetch].each do |name|
       assert_includes Jules::Tool::STAKEOUT_TOOLS, name
     end
   end

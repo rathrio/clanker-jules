@@ -85,7 +85,7 @@ module Jules
     end
 
     LOBOTOMIZED_TOOLS = %w[read write edit bash].freeze
-    STAKEOUT_TOOLS = %w[read glob search findcode webfetch memory loadskill notification].freeze
+    STAKEOUT_TOOLS = %w[read glob search findcode webfetch loadskill notification].freeze
 
     def self.declarations(format:, only: nil)
       tools = only ? all.select { |t| only.include?(t.tool_name) } : all
